@@ -13,11 +13,15 @@ struct CollectApp: App {
                 .environmentObject(authService)
                 .environmentObject(limitsService)
                 .environmentObject(featuresService)
-                .task { await featuresService.fetch() }            // at startup, no auth needed
                 .onChange(of: authService.isAuthenticated) { _, isAuth in
                     Task {
-                        if isAuth { await limitsService.fetch() }
-                        else       { limitsService.reset() }
+                        if isAuth {
+                            await limitsService.fetch()
+                            await featuresService.fetch()   // plan-gated — needs auth
+                        } else {
+                            limitsService.reset()
+                            featuresService.reset()
+                        }
                     }
                 }
         }
