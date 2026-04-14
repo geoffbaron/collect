@@ -5,6 +5,7 @@ import SwiftUI
 struct ScanFlowView: View {
     let room: Room
     @Binding var isPresented: Bool
+    @EnvironmentObject private var limitsService: LimitsService
 
     enum Step {
         case promptSelection
@@ -81,6 +82,7 @@ struct ScanFlowView: View {
                 videoURL: url,
                 capturedLayout: layout
             ) {
+                Task { await limitsService.refreshUsage() }
                 isPresented = false
             }
         }

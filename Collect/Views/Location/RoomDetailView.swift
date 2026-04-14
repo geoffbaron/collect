@@ -4,6 +4,7 @@ import SwiftData
 struct RoomDetailView: View {
     @Bindable var room: Room
     @EnvironmentObject private var featuresService: FeaturesService
+    @EnvironmentObject private var limitsService: LimitsService
     @Environment(\.modelContext) private var modelContext
     @State private var showScan = false
     @State private var showRoomScan = false
@@ -128,8 +129,9 @@ struct RoomDetailView: View {
                 Button {
                     showScan = true
                 } label: {
-                    Image(systemName: "camera.fill")
+                    Image(systemName: limitsService.canScan ? "camera.fill" : "lock.fill")
                 }
+                .disabled(!limitsService.canScan)
             }
         }
         .sheet(isPresented: $showScan) {

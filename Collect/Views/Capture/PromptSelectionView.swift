@@ -5,6 +5,7 @@ struct PromptSelectionView: View {
     let onSelected: (PromptTemplate, Bool) -> Void
     let onCancel: () -> Void
 
+    @EnvironmentObject private var limitsService: LimitsService
     @State private var customPrompt = ""
     @State private var includeLayoutScan: Bool
 
@@ -18,6 +19,31 @@ struct PromptSelectionView: View {
 
     var body: some View {
         List {
+            // ── Quota banner ──────────────────────────────────────────────
+            Section {
+                HStack(spacing: 10) {
+                    if limitsService.canScan {
+                        Image(systemName: "camera.viewfinder")
+                            .foregroundStyle(.blue)
+                        Text(limitsService.usageLabel)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Image(systemName: "lock.circle.fill")
+                            .foregroundStyle(.orange)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Monthly limit reached")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.primary)
+                            Text("Upgrade to Pro for unlimited scans.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+
             Section {
                 Text("What would you like to collect in \(room.name)?")
                     .font(.subheadline)
@@ -55,13 +81,13 @@ struct PromptSelectionView: View {
                         HStack(spacing: 14) {
                             Image(systemName: type.icon)
                                 .font(.title2)
-                                .foregroundStyle(.blue)
+                                .foregroundStyle(limitsService.canScan ? .blue : .secondary)
                                 .frame(width: 32)
 
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(type.displayName)
                                     .font(.headline)
-                                    .foregroundStyle(.primary)
+                                    .foregroundStyle(limitsService.canScan ? .primary : .secondary)
                                 Text(type.description)
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
@@ -69,12 +95,13 @@ struct PromptSelectionView: View {
 
                             Spacer()
 
-                            Image(systemName: "chevron.right")
+                            Image(systemName: limitsService.canScan ? "chevron.right" : "lock")
                                 .font(.caption)
                                 .foregroundStyle(.tertiary)
                         }
                         .padding(.vertical, 4)
                     }
+                    .disabled(!limitsService.canScan)
                 }
             }
 
@@ -82,6 +109,7 @@ struct PromptSelectionView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     TextField("Describe what to collect…", text: $customPrompt, axis: .vertical)
                         .lineLimit(2...4)
+                        .disabled(!limitsService.canScan)
 
                     Button {
                         select(type: .custom, custom: customPrompt)
@@ -90,7 +118,7 @@ struct PromptSelectionView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
-                    .disabled(customPrompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(!limitsService.canScan || customPrompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
                 .padding(.vertical, 4)
             }
@@ -100,6 +128,9 @@ struct PromptSelectionView: View {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel", action: onCancel)
             }
+        }
+        .onAppear {
+            Task { await limitsService.refreshUsage() }
         }
     }
 

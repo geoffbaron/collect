@@ -64,7 +64,20 @@ serve(async (req: Request) => {
     return json({ error: "Unauthorized" }, 401)
   }
 
-  // ── 2. Parse request ─────────────────────────────────────────────────────
+  // ── 2. Check monthly scan allowance ─────────────────────────────────────
+  try {
+    const { data: usage } = await supabase.rpc("get_scan_usage")
+    if (usage && usage.length > 0) {
+      const { scans_this_month, monthly_limit } = usage[0]
+      if (monthly_limit !== -1 && scans_this_month >= monthly_limit) {
+        return json({
+          error: `Monthly scan limit reached (${scans_this_month}/${monthly_limit}). Upgrade to Pro for unlimited scans.`
+        }, 429)
+      }
+    }
+  } catch { /* allow through on RPC failure — don't block scans over infra issues */ }
+
+  // ── 3. Parse request ─────────────────────────────────────────────────────
   let body: AnalyzeRequest
   try {
     body = await req.json()
@@ -81,7 +94,7 @@ serve(async (req: Request) => {
     return json({ error: "Server configuration error: missing GEMINI_API_KEY" }, 500)
   }
 
-  // ── 3. Build Gemini request ───────────────────────────────────────────────
+  // ── 4. Build Gemini request ───────────────────────────────────────────────
   const frameCount = frames.length
   const frameSchema = `
 Also include:
