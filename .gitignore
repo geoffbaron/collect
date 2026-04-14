@@ -1,0 +1,25 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode
+*.xcuserstate
+xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+build/
+*.ipa
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Archives
+*.xcarchive
+
+# Credentials / secrets
+*.p8
+*.p12
+*.mobileprovision
+GoogleService-Info.plist

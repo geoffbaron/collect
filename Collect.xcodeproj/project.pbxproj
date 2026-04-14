@@ -1,0 +1,590 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10001 /* CollectApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10001 /* CollectApp.swift */; };
+		A10002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10002 /* ContentView.swift */; };
+		A10003 /* Property.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10003 /* Property.swift */; };
+		A10004 /* Floor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10004 /* Floor.swift */; };
+		A10005 /* Room.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10005 /* Room.swift */; };
+		A10006 /* Collection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10006 /* Collection.swift */; };
+		A10007 /* Asset.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10007 /* Asset.swift */; };
+		A10008 /* PromptType.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10008 /* PromptType.swift */; };
+		A10009 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10009 /* AuthService.swift */; };
+		A10010 /* PromptManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10010 /* PromptManager.swift */; };
+		A10011 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10011 /* SignInView.swift */; };
+		A10012 /* SignUpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10012 /* SignUpView.swift */; };
+		A10013 /* PropertyListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10013 /* PropertyListView.swift */; };
+		A10014 /* PropertyDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10014 /* PropertyDetailView.swift */; };
+		A10015 /* FloorDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10015 /* FloorDetailView.swift */; };
+		A10016 /* RoomDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10016 /* RoomDetailView.swift */; };
+		A10017 /* PromptSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10017 /* PromptSelectionView.swift */; };
+		A10018 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10018 /* Assets.xcassets */; };
+		A10019 /* FrameExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10019 /* FrameExtractor.swift */; };
+		A10020 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10020 /* AIService.swift */; };
+		A10041 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10041 /* LocationService.swift */; };
+		A10021 /* AnalysisViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10021 /* AnalysisViewModel.swift */; };
+		A10022 /* CameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10022 /* CameraController.swift */; };
+		A10023 /* CameraPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10023 /* CameraPreview.swift */; };
+		A10024 /* VideoCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10024 /* VideoCaptureView.swift */; };
+		A10025 /* ScanFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10025 /* ScanFlowView.swift */; };
+		A10026 /* AnalysisProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10026 /* AnalysisProgressView.swift */; };
+		A10027 /* ResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10027 /* ResultsView.swift */; };
+		A10028 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10028 /* SettingsView.swift */; };
+		A10029 /* CollectionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10029 /* CollectionDetailView.swift */; };
+		A10030 /* AssetDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10030 /* AssetDetailView.swift */; };
+		A10031 /* CSVExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10031 /* CSVExporter.swift */; };
+		A10032 /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10032 /* ShareSheet.swift */; };
+		A10033 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10033 /* OnboardingView.swift */; };
+		A10034 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B10034 /* PrivacyInfo.xcprivacy */; };
+		A10050 /* RoomLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10050 /* RoomLayout.swift */; };
+		A10051 /* RoomScanSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10051 /* RoomScanSheet.swift */; };
+		A10052 /* FloorPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10052 /* FloorPlanView.swift */; };
+		A10053 /* PropertyFloorPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10053 /* PropertyFloorPlanView.swift */; };
+		A10054 /* PropertyMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10054 /* PropertyMapView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		B10000 /* Collect.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Collect.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B10001 /* CollectApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectApp.swift; sourceTree = "<group>"; };
+		B10002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		B10003 /* Property.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Property.swift; sourceTree = "<group>"; };
+		B10004 /* Floor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Floor.swift; sourceTree = "<group>"; };
+		B10005 /* Room.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Room.swift; sourceTree = "<group>"; };
+		B10006 /* Collection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Collection.swift; sourceTree = "<group>"; };
+		B10007 /* Asset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Asset.swift; sourceTree = "<group>"; };
+		B10008 /* PromptType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptType.swift; sourceTree = "<group>"; };
+		B10009 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		B10010 /* PromptManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptManager.swift; sourceTree = "<group>"; };
+		B10011 /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
+		B10012 /* SignUpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpView.swift; sourceTree = "<group>"; };
+		B10013 /* PropertyListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyListView.swift; sourceTree = "<group>"; };
+		B10014 /* PropertyDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyDetailView.swift; sourceTree = "<group>"; };
+		B10015 /* FloorDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloorDetailView.swift; sourceTree = "<group>"; };
+		B10016 /* RoomDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomDetailView.swift; sourceTree = "<group>"; };
+		B10017 /* PromptSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptSelectionView.swift; sourceTree = "<group>"; };
+		B10018 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B10019 /* FrameExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameExtractor.swift; sourceTree = "<group>"; };
+		B10020 /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
+		B10041 /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
+		B10021 /* AnalysisViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisViewModel.swift; sourceTree = "<group>"; };
+		B10022 /* CameraController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraController.swift; sourceTree = "<group>"; };
+		B10023 /* CameraPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreview.swift; sourceTree = "<group>"; };
+		B10024 /* VideoCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCaptureView.swift; sourceTree = "<group>"; };
+		B10025 /* ScanFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanFlowView.swift; sourceTree = "<group>"; };
+		B10026 /* AnalysisProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisProgressView.swift; sourceTree = "<group>"; };
+		B10027 /* ResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultsView.swift; sourceTree = "<group>"; };
+		B10028 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		B10029 /* CollectionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionDetailView.swift; sourceTree = "<group>"; };
+		B10030 /* AssetDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetDetailView.swift; sourceTree = "<group>"; };
+		B10031 /* CSVExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVExporter.swift; sourceTree = "<group>"; };
+		B10032 /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
+		B10033 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		B10034 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		B10050 /* RoomLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomLayout.swift; sourceTree = "<group>"; };
+		B10051 /* RoomScanSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomScanSheet.swift; sourceTree = "<group>"; };
+		B10052 /* FloorPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloorPlanView.swift; sourceTree = "<group>"; };
+		B10053 /* PropertyFloorPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyFloorPlanView.swift; sourceTree = "<group>"; };
+		B10054 /* PropertyMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyMapView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C10001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		D10000 = {
+			isa = PBXGroup;
+			children = (
+				D10001 /* Collect */,
+				D10099 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D10001 /* Collect */ = {
+			isa = PBXGroup;
+			children = (
+				B10001 /* CollectApp.swift */,
+				B10002 /* ContentView.swift */,
+				D10002 /* Models */,
+				D10003 /* Services */,
+				D10004 /* Views */,
+				D10005 /* Prompts */,
+				D10006 /* ViewModels */,
+				D10008 /* Utilities */,
+				D10007 /* Resources */,
+			);
+			path = Collect;
+			sourceTree = "<group>";
+		};
+		D10002 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				B10003 /* Property.swift */,
+				B10004 /* Floor.swift */,
+				B10005 /* Room.swift */,
+				B10006 /* Collection.swift */,
+				B10007 /* Asset.swift */,
+				B10008 /* PromptType.swift */,
+				B10050 /* RoomLayout.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		D10003 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				B10009 /* AuthService.swift */,
+				B10019 /* FrameExtractor.swift */,
+				B10020 /* AIService.swift */,
+					B10041 /* LocationService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		D10004 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				D10010 /* Auth */,
+				D10011 /* Property */,
+				D10012 /* Location */,
+				D10013 /* Capture */,
+				D10014 /* Analysis */,
+				D10015 /* Collection */,
+				D10016 /* Components */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		D10005 /* Prompts */ = {
+			isa = PBXGroup;
+			children = (
+				B10010 /* PromptManager.swift */,
+			);
+			path = Prompts;
+			sourceTree = "<group>";
+		};
+		D10006 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				B10021 /* AnalysisViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		D10007 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				B10018 /* Assets.xcassets */,
+				B10034 /* PrivacyInfo.xcprivacy */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		D10008 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				B10031 /* CSVExporter.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		D10010 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				B10011 /* SignInView.swift */,
+				B10012 /* SignUpView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		D10011 /* Property */ = {
+			isa = PBXGroup;
+			children = (
+				B10013 /* PropertyListView.swift */,
+				B10014 /* PropertyDetailView.swift */,
+				B10053 /* PropertyFloorPlanView.swift */,
+				B10054 /* PropertyMapView.swift */,
+			);
+			path = Property;
+			sourceTree = "<group>";
+		};
+		D10012 /* Location */ = {
+			isa = PBXGroup;
+			children = (
+				B10015 /* FloorDetailView.swift */,
+				B10016 /* RoomDetailView.swift */,
+				B10051 /* RoomScanSheet.swift */,
+				B10052 /* FloorPlanView.swift */,
+			);
+			path = Location;
+			sourceTree = "<group>";
+		};
+		D10013 /* Capture */ = {
+			isa = PBXGroup;
+			children = (
+				B10017 /* PromptSelectionView.swift */,
+				B10022 /* CameraController.swift */,
+				B10023 /* CameraPreview.swift */,
+				B10024 /* VideoCaptureView.swift */,
+				B10025 /* ScanFlowView.swift */,
+			);
+			path = Capture;
+			sourceTree = "<group>";
+		};
+		D10014 /* Analysis */ = {
+			isa = PBXGroup;
+			children = (
+				B10026 /* AnalysisProgressView.swift */,
+				B10027 /* ResultsView.swift */,
+			);
+			path = Analysis;
+			sourceTree = "<group>";
+		};
+		D10015 /* Collection */ = {
+			isa = PBXGroup;
+			children = (
+				B10029 /* CollectionDetailView.swift */,
+				B10030 /* AssetDetailView.swift */,
+			);
+			path = Collection;
+			sourceTree = "<group>";
+		};
+		D10016 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				B10028 /* SettingsView.swift */,
+				B10032 /* ShareSheet.swift */,
+				B10033 /* OnboardingView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		D10099 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B10000 /* Collect.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E10001 /* Collect */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F10003 /* Build configuration list for PBXNativeTarget "Collect" */;
+			buildPhases = (
+				E10002 /* Sources */,
+				C10001 /* Frameworks */,
+				E10003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Collect;
+			productName = Collect;
+			productReference = B10000 /* Collect.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E10000 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 2620;
+				TargetAttributes = {
+					E10001 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = F10001 /* Build configuration list for PBXProject "Collect" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = D10000;
+			productRefGroup = D10099 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E10001 /* Collect */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E10003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10018 /* Assets.xcassets in Resources */,
+				A10034 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E10002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10001 /* CollectApp.swift in Sources */,
+				A10002 /* ContentView.swift in Sources */,
+				A10003 /* Property.swift in Sources */,
+				A10004 /* Floor.swift in Sources */,
+				A10005 /* Room.swift in Sources */,
+				A10006 /* Collection.swift in Sources */,
+				A10007 /* Asset.swift in Sources */,
+				A10008 /* PromptType.swift in Sources */,
+				A10009 /* AuthService.swift in Sources */,
+				A10010 /* PromptManager.swift in Sources */,
+				A10011 /* SignInView.swift in Sources */,
+				A10012 /* SignUpView.swift in Sources */,
+				A10013 /* PropertyListView.swift in Sources */,
+				A10014 /* PropertyDetailView.swift in Sources */,
+				A10015 /* FloorDetailView.swift in Sources */,
+				A10016 /* RoomDetailView.swift in Sources */,
+				A10017 /* PromptSelectionView.swift in Sources */,
+				A10019 /* FrameExtractor.swift in Sources */,
+				A10020 /* AIService.swift in Sources */,
+					A10041 /* LocationService.swift in Sources */,
+				A10021 /* AnalysisViewModel.swift in Sources */,
+				A10022 /* CameraController.swift in Sources */,
+				A10023 /* CameraPreview.swift in Sources */,
+				A10024 /* VideoCaptureView.swift in Sources */,
+				A10025 /* ScanFlowView.swift in Sources */,
+				A10026 /* AnalysisProgressView.swift in Sources */,
+				A10027 /* ResultsView.swift in Sources */,
+				A10028 /* SettingsView.swift in Sources */,
+				A10029 /* CollectionDetailView.swift in Sources */,
+				A10030 /* AssetDetailView.swift in Sources */,
+				A10031 /* CSVExporter.swift in Sources */,
+				A10032 /* ShareSheet.swift in Sources */,
+				A10033 /* OnboardingView.swift in Sources */,
+				A10050 /* RoomLayout.swift in Sources */,
+				A10051 /* RoomScanSheet.swift in Sources */,
+				A10052 /* FloorPlanView.swift in Sources */,
+				A10053 /* PropertyFloorPlanView.swift in Sources */,
+				A10054 /* PropertyMapView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		F10010 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = X7ZJ28RPDT;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		F10011 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = X7ZJ28RPDT;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		F10020 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 13;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Collect: Stuff Scanner";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Collect needs camera access to record room videos for asset collection.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Collect needs microphone access for video recording.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Collect uses your location to tag where each asset is found, so you can map them later.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.geoffbaron.collect;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		F10021 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 13;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Collect: Stuff Scanner";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Collect needs camera access to record room videos for asset collection.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Collect needs microphone access for video recording.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Collect uses your location to tag where each asset is found, so you can map them later.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.geoffbaron.collect;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F10001 /* Build configuration list for PBXProject "Collect" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F10010 /* Debug */,
+				F10011 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F10003 /* Build configuration list for PBXNativeTarget "Collect" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F10020 /* Debug */,
+				F10021 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E10000 /* Project object */;
+}
