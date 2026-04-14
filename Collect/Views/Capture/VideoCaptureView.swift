@@ -6,33 +6,71 @@ struct VideoCaptureView: View {
     let template: PromptTemplate
     let onVideoRecorded: (URL) -> Void
 
+    @EnvironmentObject private var limitsService: LimitsService
     @StateObject private var camera = CameraController()
     @State private var isRecording = false
     @State private var elapsedSeconds = 0
     @State private var timer: Timer?
+    @State private var showLimitWarning = false
+
+    private var maxSeconds: Int { limitsService.limits.maxVideoSeconds }
+    private var isUnlimited: Bool { limitsService.limits.isVideoUnlimited }
+
+    // Fraction of limit elapsed (0–1), nil when unlimited
+    private var progress: Double? {
+        guard !isUnlimited, isRecording else { return nil }
+        return min(Double(elapsedSeconds) / Double(maxSeconds), 1.0)
+    }
+
+    // Warning colour: green → yellow → red
+    private var timerColor: Color {
+        guard let p = progress else { return .white }
+        if p < 0.7  { return .white }
+        if p < 0.9  { return .yellow }
+        return .red
+    }
 
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-
-            CameraPreview(session: camera.session)
-                .ignoresSafeArea()
+            CameraPreview(session: camera.session).ignoresSafeArea()
 
             VStack {
-                // Timer badge (visible during recording)
+                // ── Top: timer + limit bar ─────────────────────────────
                 HStack {
                     Spacer()
-                    if isRecording {
-                        HStack(spacing: 6) {
-                            Circle().fill(.red).frame(width: 8, height: 8)
-                            Text(timeString(elapsedSeconds))
-                                .foregroundStyle(.white)
-                                .fontWeight(.semibold)
-                                .monospacedDigit()
+                    VStack(spacing: 6) {
+                        if isRecording {
+                            HStack(spacing: 6) {
+                                Circle().fill(.red).frame(width: 8, height: 8)
+                                Text(timeString(elapsedSeconds))
+                                    .foregroundStyle(timerColor)
+                                    .fontWeight(.semibold)
+                                    .monospacedDigit()
+                                if !isUnlimited {
+                                    Text("/ \(timeString(maxSeconds))")
+                                        .foregroundStyle(.white.opacity(0.5))
+                                        .font(.caption)
+                                        .monospacedDigit()
+                                }
+                            }
+                            .padding(.horizontal, 14).padding(.vertical, 8)
+                            .background(.black.opacity(0.55))
+                            .clipShape(Capsule())
+
+                            // Progress bar
+                            if let p = progress {
+                                GeometryReader { geo in
+                                    ZStack(alignment: .leading) {
+                                        Capsule().fill(.white.opacity(0.2))
+                                        Capsule()
+                                            .fill(timerColor)
+                                            .frame(width: geo.size.width * p)
+                                    }
+                                }
+                                .frame(width: 140, height: 4)
+                            }
                         }
-                        .padding(.horizontal, 14).padding(.vertical, 8)
-                        .background(.black.opacity(0.55))
-                        .clipShape(Capsule())
                     }
                     Spacer()
                 }
@@ -51,7 +89,7 @@ struct VideoCaptureView: View {
                         .transition(.opacity)
                 }
 
-                // Scan type label + record button
+                // Scan type + record button
                 VStack(spacing: 20) {
                     Label(template.type.displayName, systemImage: template.type.icon)
                         .font(.caption.weight(.semibold))
@@ -60,12 +98,18 @@ struct VideoCaptureView: View {
                         .background(.blue.opacity(0.85))
                         .clipShape(Capsule())
 
+                    // Limit hint (shown before recording starts)
+                    if !isRecording && !isUnlimited {
+                        Text("Max \(timeString(maxSeconds)) · Upgrade for longer scans")
+                            .font(.caption2)
+                            .foregroundStyle(.white.opacity(0.5))
+                    }
+
                     Button(action: toggleRecording) {
                         ZStack {
                             Circle()
                                 .stroke(.white, lineWidth: 3)
                                 .frame(width: 72, height: 72)
-
                             if isRecording {
                                 RoundedRectangle(cornerRadius: 6)
                                     .fill(.red)
@@ -86,7 +130,14 @@ struct VideoCaptureView: View {
             timer?.invalidate()
             camera.stop()
         }
+        .alert("Video limit reached", isPresented: $showLimitWarning) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Your plan allows up to \(timeString(maxSeconds)) per scan. The recording was saved automatically. Upgrade to Pro for longer scans.")
+        }
     }
+
+    // MARK: - Recording
 
     private func toggleRecording() {
         isRecording ? stopRecording() : startRecording()
@@ -98,13 +149,17 @@ struct VideoCaptureView: View {
         camera.startRecording(to: url) { result in
             switch result {
             case .success(let videoURL): onVideoRecorded(videoURL)
-            case .failure(let err): print("Recording failed: \(err)")
+            case .failure(let err):      print("Recording failed: \(err)")
             }
         }
-        isRecording = true
+        isRecording    = true
         elapsedSeconds = 0
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             elapsedSeconds += 1
+            if !isUnlimited && elapsedSeconds >= maxSeconds {
+                showLimitWarning = true
+                stopRecording()
+            }
         }
     }
 

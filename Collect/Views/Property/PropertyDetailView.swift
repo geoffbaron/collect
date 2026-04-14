@@ -3,6 +3,7 @@ import SwiftData
 
 struct PropertyDetailView: View {
     @Bindable var property: Property
+    @EnvironmentObject private var featuresService: FeaturesService
     @Environment(\.modelContext) private var modelContext
     @State private var showAddFloor = false
     @State private var newFloorName = ""
@@ -72,16 +73,20 @@ struct PropertyDetailView: View {
                         Label("Edit Property", systemImage: "pencil")
                     }
 
-                    Button {
-                        showFloorPlan = true
-                    } label: {
-                        Label("Floor Plans", systemImage: "square.grid.2x2")
+                    if featuresService.floorScansEnabled {
+                        Button {
+                            showFloorPlan = true
+                        } label: {
+                            Label("Floor Plans", systemImage: "square.grid.2x2")
+                        }
                     }
 
-                    Button {
-                        showPropertyMap = true
-                    } label: {
-                        Label("Property Map", systemImage: "map")
+                    if featuresService.locationEnabled {
+                        Button {
+                            showPropertyMap = true
+                        } label: {
+                            Label("Property Map", systemImage: "map")
+                        }
                     }
 
                     Button {

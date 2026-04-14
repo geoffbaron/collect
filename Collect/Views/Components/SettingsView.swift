@@ -5,79 +5,52 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var authService: AuthService
-    @State private var apiKey = ""
-    @State private var saved = false
-    @State private var hasExistingKey = false
     @State private var showDeleteConfirmation = false
+    @State private var showSignOutConfirmation = false
 
     var body: some View {
         NavigationStack {
             Form {
-                Section {
-                    SecureField("Paste your Gemini API key", text: $apiKey)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-
-                    if hasExistingKey && apiKey.isEmpty {
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(.green)
-                            Text("API key is set")
-                                .foregroundStyle(.secondary)
-                        }
-                        .font(.caption)
+                // MARK: Account info
+                Section("Account") {
+                    if let name = authService.currentUserName {
+                        LabeledContent("Name", value: name)
                     }
-                } header: {
-                    Text("Gemini API Key")
-                } footer: {
-                    Text("Your key is stored on-device only and never shared.")
-                }
-
-                Section {
-                    Link(destination: URL(string: "https://aistudio.google.com/apikey")!) {
-                        Label("Get a free API key", systemImage: "key")
+                    if let email = authService.currentUserEmail {
+                        LabeledContent("Email", value: email)
+                    }
+                    if authService.isGuest {
+                        Text("You're in guest mode — create an account to save your data across devices.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
 
+                // MARK: Sign out
                 Section {
-                    Button {
-                        Task {
-                            await AIService.shared.setAPIKey(apiKey.trimmingCharacters(in: .whitespacesAndNewlines))
-                            saved = true
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                                dismiss()
-                            }
-                        }
+                    Button(role: .none) {
+                        showSignOutConfirmation = true
                     } label: {
-                        HStack {
-                            Text(saved ? "Saved!" : "Save Key")
-                            if saved {
-                                Spacer()
-                                Image(systemName: "checkmark")
-                                    .foregroundStyle(.green)
-                            }
-                        }
+                        Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
                     }
-                    .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
 
+                // MARK: Danger zone
                 Section {
                     Button(role: .destructive) {
                         showDeleteConfirmation = true
                     } label: {
                         Label("Delete Account", systemImage: "trash")
                     }
-                } header: {
-                    Text("Account")
                 } footer: {
-                    Text("Deletes your account and all local data from this device.")
+                    Text("Deletes your account and all data on this device permanently.")
                 }
 
+                // MARK: About
                 Section("About") {
                     LabeledContent("Version", value: appVersion)
-                    Link(destination: URL(string: "https://aistudio.google.com")!) {
-                        Label("Powered by Google Gemini", systemImage: "sparkles")
-                    }
+                    Label("Powered by Google Gemini", systemImage: "sparkles")
+                        .foregroundStyle(.secondary)
                 }
             }
             .navigationTitle("Settings")
@@ -87,11 +60,11 @@ struct SettingsView: View {
                     Button("Done") { dismiss() }
                 }
             }
-            .confirmationDialog(
-                "Delete Account?",
-                isPresented: $showDeleteConfirmation,
-                titleVisibility: .visible
-            ) {
+            .confirmationDialog("Sign Out?", isPresented: $showSignOutConfirmation, titleVisibility: .visible) {
+                Button("Sign Out", role: .destructive) { authService.signOut() }
+                Button("Cancel", role: .cancel) { }
+            }
+            .confirmationDialog("Delete Account?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
                 Button("Delete Account", role: .destructive) {
                     Task { await authService.deleteAccount(modelContext: modelContext) }
                 }
@@ -99,22 +72,12 @@ struct SettingsView: View {
             } message: {
                 Text("This will permanently delete your account and all local data. This cannot be undone.")
             }
-            .onAppear {
-                Task {
-                    let key = await AIService.shared.apiKey
-                    await MainActor.run {
-                        hasExistingKey = !key.isEmpty
-                        // Show masked placeholder if key exists, blank field for new entry
-                        apiKey = ""
-                    }
-                }
-            }
         }
     }
 
     private var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
-        let build   = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+        let build   = Bundle.main.infoDictionary?["CFBundleVersion"]            as? String ?? "1"
         return "\(version) (\(build))"
     }
 }

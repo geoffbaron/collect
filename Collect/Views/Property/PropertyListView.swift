@@ -3,12 +3,19 @@ import SwiftData
 
 struct PropertyListView: View {
     @EnvironmentObject private var authService: AuthService
+    @EnvironmentObject private var limitsService: LimitsService
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Property.updatedAt, order: .reverse) private var properties: [Property]
     @State private var showAddProperty = false
     @State private var newPropertyName = ""
     @State private var newPropertyAddress = ""
     @State private var showSettings = false
+    @State private var showLimitAlert = false
+
+    private var atPropertyLimit: Bool {
+        let max = limitsService.limits.maxProperties
+        return max != -1 && userProperties.count >= max
+    }
 
     private var userProperties: [Property] {
         properties.filter { $0.ownerID == authService.currentUserID }
@@ -35,7 +42,8 @@ struct PropertyListView: View {
 
                 ToolbarItem(placement: .primaryAction) {
                     Button {
-                        showAddProperty = true
+                        if atPropertyLimit { showLimitAlert = true }
+                        else               { showAddProperty = true }
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -43,6 +51,11 @@ struct PropertyListView: View {
             }
             .sheet(isPresented: $showSettings) {
                 SettingsView()
+            }
+            .alert("Property limit reached", isPresented: $showLimitAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Your plan allows up to \(limitsService.limits.maxProperties) properties. Upgrade to Pro for unlimited properties.")
             }
             .alert("New Property", isPresented: $showAddProperty) {
                 TextField("Property Name", text: $newPropertyName)
@@ -79,10 +92,11 @@ struct PropertyListView: View {
             .onDelete(perform: deleteProperties)
 
             Button {
-                showAddProperty = true
+                if atPropertyLimit { showLimitAlert = true }
+                else               { showAddProperty = true }
             } label: {
-                Label("Add Property", systemImage: "plus.circle")
-                    .foregroundStyle(.blue)
+                Label("Add Property", systemImage: atPropertyLimit ? "lock.circle" : "plus.circle")
+                    .foregroundStyle(atPropertyLimit ? .secondary : .blue)
             }
         }
         .navigationDestination(for: Property.self) { property in

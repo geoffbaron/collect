@@ -27,7 +27,6 @@
 		A10018 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10018 /* Assets.xcassets */; };
 		A10019 /* FrameExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10019 /* FrameExtractor.swift */; };
 		A10020 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10020 /* AIService.swift */; };
-		A10041 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10041 /* LocationService.swift */; };
 		A10021 /* AnalysisViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10021 /* AnalysisViewModel.swift */; };
 		A10022 /* CameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10022 /* CameraController.swift */; };
 		A10023 /* CameraPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10023 /* CameraPreview.swift */; };
@@ -42,11 +41,14 @@
 		A10032 /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10032 /* ShareSheet.swift */; };
 		A10033 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10033 /* OnboardingView.swift */; };
 		A10034 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B10034 /* PrivacyInfo.xcprivacy */; };
+		A10041 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10041 /* LocationService.swift */; };
 		A10050 /* RoomLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10050 /* RoomLayout.swift */; };
 		A10051 /* RoomScanSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10051 /* RoomScanSheet.swift */; };
 		A10052 /* FloorPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10052 /* FloorPlanView.swift */; };
 		A10053 /* PropertyFloorPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10053 /* PropertyFloorPlanView.swift */; };
 		A10054 /* PropertyMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10054 /* PropertyMapView.swift */; };
+		A10060 /* SupabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10060 /* SupabaseManager.swift */; };
+		A10061 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = C10060 /* Supabase */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -71,7 +73,6 @@
 		B10018 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B10019 /* FrameExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameExtractor.swift; sourceTree = "<group>"; };
 		B10020 /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
-		B10041 /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
 		B10021 /* AnalysisViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisViewModel.swift; sourceTree = "<group>"; };
 		B10022 /* CameraController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraController.swift; sourceTree = "<group>"; };
 		B10023 /* CameraPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreview.swift; sourceTree = "<group>"; };
@@ -86,11 +87,13 @@
 		B10032 /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		B10033 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		B10034 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		B10041 /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
 		B10050 /* RoomLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomLayout.swift; sourceTree = "<group>"; };
 		B10051 /* RoomScanSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomScanSheet.swift; sourceTree = "<group>"; };
 		B10052 /* FloorPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloorPlanView.swift; sourceTree = "<group>"; };
 		B10053 /* PropertyFloorPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyFloorPlanView.swift; sourceTree = "<group>"; };
 		B10054 /* PropertyMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyMapView.swift; sourceTree = "<group>"; };
+		B10060 /* SupabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,6 +101,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A10061 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -148,7 +152,8 @@
 				B10009 /* AuthService.swift */,
 				B10019 /* FrameExtractor.swift */,
 				B10020 /* AIService.swift */,
-					B10041 /* LocationService.swift */,
+				B10041 /* LocationService.swift */,
+				B10060 /* SupabaseManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -295,6 +300,9 @@
 			dependencies = (
 			);
 			name = Collect;
+			packageProductDependencies = (
+				C10060 /* Supabase */,
+			);
 			productName = Collect;
 			productReference = B10000 /* Collect.app */;
 			productType = "com.apple.product-type.application";
@@ -323,6 +331,9 @@
 				Base,
 			);
 			mainGroup = D10000;
+			packageReferences = (
+				49FF20722F8DF2C60002F9A5 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			productRefGroup = D10099 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -368,7 +379,7 @@
 				A10017 /* PromptSelectionView.swift in Sources */,
 				A10019 /* FrameExtractor.swift in Sources */,
 				A10020 /* AIService.swift in Sources */,
-					A10041 /* LocationService.swift in Sources */,
+				A10041 /* LocationService.swift in Sources */,
 				A10021 /* AnalysisViewModel.swift in Sources */,
 				A10022 /* CameraController.swift in Sources */,
 				A10023 /* CameraPreview.swift in Sources */,
@@ -387,6 +398,7 @@
 				A10052 /* FloorPlanView.swift in Sources */,
 				A10053 /* PropertyFloorPlanView.swift in Sources */,
 				A10054 /* PropertyMapView.swift in Sources */,
+				A10060 /* SupabaseManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -509,15 +521,15 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Collect: Stuff Scanner";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Collect needs camera access to record room videos for asset collection.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Collect needs microphone access for video recording.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Collect uses your location to tag where each asset is found, so you can map them later.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Collect needs microphone access for video recording.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -541,15 +553,15 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Collect: Stuff Scanner";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Collect needs camera access to record room videos for asset collection.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Collect needs microphone access for video recording.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Collect uses your location to tag where each asset is found, so you can map them later.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Collect needs microphone access for video recording.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -585,6 +597,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C10060 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 49FF20722F8DF2C60002F9A5 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		49FF20722F8DF2C60002F9A5 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = E10000 /* Project object */;
 }

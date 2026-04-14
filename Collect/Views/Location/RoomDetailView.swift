@@ -3,6 +3,7 @@ import SwiftData
 
 struct RoomDetailView: View {
     @Bindable var room: Room
+    @EnvironmentObject private var featuresService: FeaturesService
     @Environment(\.modelContext) private var modelContext
     @State private var showScan = false
     @State private var showRoomScan = false
@@ -31,51 +32,55 @@ struct RoomDetailView: View {
                     }
                     .buttonStyle(.borderedProminent)
 
-                    Button {
-                        showRoomScan = true
-                    } label: {
-                        Label("Scan Room Layout", systemImage: "map")
+                    if featuresService.floorScansEnabled {
+                        Button {
+                            showRoomScan = true
+                        } label: {
+                            Label("Scan Room Layout", systemImage: "map")
+                        }
+                        .buttonStyle(.bordered)
                     }
-                    .buttonStyle(.bordered)
                 }
             } else {
                 List {
-                    // Layout section
-                    Section {
-                        if room.hasLayout, let data = room.layoutData, let layout = RoomLayout.from(data) {
-                            let roomAssets = collections.flatMap { $0.assets }
-                            let unpinnedCount = roomAssets.filter { !$0.hasPinnedPosition }.count
-                            NavigationLink {
-                                FloorPlanView(layout: layout, assets: roomAssets)
-                                    .navigationTitle("Floor Plan")
-                                    .navigationBarTitleDisplayMode(.inline)
-                            } label: {
-                                HStack {
-                                    Label("View Floor Plan", systemImage: "map.fill")
-                                        .foregroundStyle(.blue)
-                                    Spacer()
-                                    if unpinnedCount > 0 {
-                                        Text("\(unpinnedCount) unpinned")
-                                            .font(.caption)
-                                            .foregroundStyle(.white)
-                                            .padding(.horizontal, 8).padding(.vertical, 3)
-                                            .background(.orange, in: Capsule())
+                    // Layout section (floor_scans flag)
+                    if featuresService.floorScansEnabled {
+                        Section {
+                            if room.hasLayout, let data = room.layoutData, let layout = RoomLayout.from(data) {
+                                let roomAssets = collections.flatMap { $0.assets }
+                                let unpinnedCount = roomAssets.filter { !$0.hasPinnedPosition }.count
+                                NavigationLink {
+                                    FloorPlanView(layout: layout, assets: roomAssets)
+                                        .navigationTitle("Floor Plan")
+                                        .navigationBarTitleDisplayMode(.inline)
+                                } label: {
+                                    HStack {
+                                        Label("View Floor Plan", systemImage: "map.fill")
+                                            .foregroundStyle(.blue)
+                                        Spacer()
+                                        if unpinnedCount > 0 {
+                                            Text("\(unpinnedCount) unpinned")
+                                                .font(.caption)
+                                                .foregroundStyle(.white)
+                                                .padding(.horizontal, 8).padding(.vertical, 3)
+                                                .background(.orange, in: Capsule())
+                                        }
                                     }
                                 }
-                            }
-                            Button {
-                                showRoomScan = true
-                            } label: {
-                                Label("Rescan Layout", systemImage: "arrow.triangle.2.circlepath")
-                                    .foregroundStyle(.secondary)
-                                    .font(.subheadline)
-                            }
-                        } else {
-                            Button {
-                                showRoomScan = true
-                            } label: {
-                                Label("Scan Room Layout", systemImage: "map")
-                                    .foregroundStyle(.blue)
+                                Button {
+                                    showRoomScan = true
+                                } label: {
+                                    Label("Rescan Layout", systemImage: "arrow.triangle.2.circlepath")
+                                        .foregroundStyle(.secondary)
+                                        .font(.subheadline)
+                                }
+                            } else {
+                                Button {
+                                    showRoomScan = true
+                                } label: {
+                                    Label("Scan Room Layout", systemImage: "map")
+                                        .foregroundStyle(.blue)
+                                }
                             }
                         }
                     }
@@ -131,8 +136,10 @@ struct RoomDetailView: View {
             ScanFlowView(room: room, isPresented: $showScan)
         }
         .sheet(isPresented: $showRoomScan) {
-            RoomScanSheet(roomName: room.name) { layout in
-                room.layoutData = layout.toData()
+            if featuresService.floorScansEnabled {
+                RoomScanSheet(roomName: room.name) { layout in
+                    room.layoutData = layout.toData()
+                }
             }
         }
     }
