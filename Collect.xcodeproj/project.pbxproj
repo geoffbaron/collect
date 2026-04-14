@@ -49,6 +49,9 @@
 		A10054 /* PropertyMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10054 /* PropertyMapView.swift */; };
 		A10060 /* SupabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10060 /* SupabaseManager.swift */; };
 		A10061 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = C10060 /* Supabase */; };
+		A10062 /* FeaturesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10062 /* FeaturesService.swift */; };
+		A10063 /* LimitsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10063 /* LimitsService.swift */; };
+		A10064 /* UsageLimits.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10064 /* UsageLimits.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -94,6 +97,9 @@
 		B10053 /* PropertyFloorPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyFloorPlanView.swift; sourceTree = "<group>"; };
 		B10054 /* PropertyMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyMapView.swift; sourceTree = "<group>"; };
 		B10060 /* SupabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseManager.swift; sourceTree = "<group>"; };
+		B10062 /* FeaturesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeaturesService.swift; sourceTree = "<group>"; };
+		B10063 /* LimitsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitsService.swift; sourceTree = "<group>"; };
+		B10064 /* UsageLimits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageLimits.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -142,6 +148,7 @@
 				B10007 /* Asset.swift */,
 				B10008 /* PromptType.swift */,
 				B10050 /* RoomLayout.swift */,
+				B10064 /* UsageLimits.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -154,6 +161,8 @@
 				B10020 /* AIService.swift */,
 				B10041 /* LocationService.swift */,
 				B10060 /* SupabaseManager.swift */,
+				B10062 /* FeaturesService.swift */,
+				B10063 /* LimitsService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -399,6 +408,9 @@
 				A10053 /* PropertyFloorPlanView.swift in Sources */,
 				A10054 /* PropertyMapView.swift in Sources */,
 				A10060 /* SupabaseManager.swift in Sources */,
+				A10062 /* FeaturesService.swift in Sources */,
+				A10063 /* LimitsService.swift in Sources */,
+				A10064 /* UsageLimits.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
