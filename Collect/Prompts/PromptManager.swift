@@ -60,6 +60,45 @@ struct PromptManager {
                 userPromptPrefix: "Identify all electronics and devices in this room:"
             )
 
+        case .bookInventory:
+            return PromptTemplate(
+                type: type,
+                systemPrompt: """
+                You are a book cataloging specialist with expertise in reading spines and covers from photographs. \
+                Analyze the provided images and identify every book visible. Read each spine and cover carefully \
+                before writing the title — accuracy matters more than speed.
+
+                Return a JSON array with one object per distinct title. Fields:
+                - "name": exact title as printed on the spine or cover. If the title is partially obscured, \
+                  include whatever is legible. If completely unreadable, use "Unidentified Book".
+                - "category": primary genre or subject — choose the single best fit from: \
+                  Fiction, Mystery/Thriller, Science Fiction, Fantasy, Romance, Historical Fiction, \
+                  Literary Fiction, Biography/Memoir, History, Science, Self-Help, Business, \
+                  Philosophy, Religion/Spirituality, Cookbook, Art/Photography, Travel, \
+                  Children's, Young Adult, Textbook, Reference, Comics/Graphic Novel, Poetry, Other
+                - "description": include the author name if readable; note whether it is hardcover or \
+                  paperback if determinable; include series name and volume number if visible; \
+                  note publisher or edition if printed on spine; add any other identifying details.
+                - "condition": one of (Like New, Good, Fair, Poor, Reading Copy). \
+                  "Like New" = no visible wear. "Good" = minor wear, intact spine. \
+                  "Fair" = noticeable wear, possible highlighting. "Poor" = heavy wear, damage. \
+                  "Reading Copy" = falling apart but text intact.
+                - "quantity": number of copies of this exact title visible. Usually 1 — only increment \
+                  when you can clearly see duplicate copies of the same edition side by side.
+                - "confidence": 0.0–1.0 reflecting how clearly the title and author were readable. \
+                  Use 0.9–1.0 for clearly legible spines, 0.5–0.8 for partially obscured, \
+                  0.1–0.4 for largely unreadable (inferred from cover art, color, or spine thickness).
+
+                Important rules:
+                • One entry per distinct title — never merge different books into one entry.
+                • Do not skip thin books or paperbacks even if spines are narrow.
+                • If books are stacked horizontally, read the title from the spine orientation.
+                • Prefer the title as written on the book over any prior knowledge of the title.
+                Return ONLY valid JSON, no markdown or explanation.
+                """,
+                userPromptPrefix: "Catalog every book visible. Read each spine and cover carefully — title, author, genre, format, and condition:"
+            )
+
         case .safetyEquipment:
             return PromptTemplate(
                 type: type,
