@@ -102,6 +102,16 @@ actor CloudRepository {
             isConfirmed:      asset.isConfirmed,
             photo1Path:       photo1Path,
             photo2Path:       photo2Path,
+            listingStatus:    asset.listingStatus,
+            listingTitle:     asset.listingTitle,
+            listingDescription: asset.listingDescription,
+            askingPrice:      asset.askingPrice,
+            listedFacebook:   asset.listedFacebook,
+            listedCraigslist: asset.listedCraigslist,
+            listedAt:         asset.listedAt,
+            soldPrice:        asset.soldPrice,
+            soldPlatform:     asset.soldPlatform,
+            soldAt:           asset.soldAt,
             updatedAt:        Date()
         )
         // Preserve existing photo paths if we didn't upload new ones

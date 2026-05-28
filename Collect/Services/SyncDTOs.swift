@@ -102,6 +102,17 @@ struct AssetUpsertDTO: Encodable {
     let isConfirmed: Bool
     var photo1Path: String?
     var photo2Path: String?
+    // Marketplace listing
+    let listingStatus: String
+    let listingTitle: String?
+    let listingDescription: String?
+    let askingPrice: Double?
+    let listedFacebook: Bool
+    let listedCraigslist: Bool
+    let listedAt: Date?
+    let soldPrice: Double?
+    let soldPlatform: String?
+    let soldAt: Date?
     let updatedAt: Date
 
     enum CodingKeys: String, CodingKey {
@@ -118,6 +129,16 @@ struct AssetUpsertDTO: Encodable {
         case isConfirmed      = "is_confirmed"
         case photo1Path       = "photo1_path"
         case photo2Path       = "photo2_path"
+        case listingStatus    = "listing_status"
+        case listingTitle     = "listing_title"
+        case listingDescription = "listing_description"
+        case askingPrice      = "asking_price"
+        case listedFacebook   = "listed_facebook"
+        case listedCraigslist = "listed_craigslist"
+        case listedAt         = "listed_at"
+        case soldPrice        = "sold_price"
+        case soldPlatform     = "sold_platform"
+        case soldAt           = "sold_at"
         case updatedAt        = "updated_at"
     }
 }
@@ -238,6 +259,17 @@ struct AssetFetchDTO: Decodable {
     let isConfirmed: Bool
     let photo1Path: String?
     let photo2Path: String?
+    // Marketplace listing (optional — older rows default to nil/false)
+    let listingStatus: String?
+    let listingTitle: String?
+    let listingDescription: String?
+    let askingPrice: Double?
+    let listedFacebook: Bool?
+    let listedCraigslist: Bool?
+    let listedAt: Date?
+    let soldPrice: Double?
+    let soldPlatform: String?
+    let soldAt: Date?
     let updatedAt: Date
     let deletedAt: Date?
 
@@ -255,6 +287,16 @@ struct AssetFetchDTO: Decodable {
         case isConfirmed      = "is_confirmed"
         case photo1Path       = "photo1_path"
         case photo2Path       = "photo2_path"
+        case listingStatus    = "listing_status"
+        case listingTitle     = "listing_title"
+        case listingDescription = "listing_description"
+        case askingPrice      = "asking_price"
+        case listedFacebook   = "listed_facebook"
+        case listedCraigslist = "listed_craigslist"
+        case listedAt         = "listed_at"
+        case soldPrice        = "sold_price"
+        case soldPlatform     = "sold_platform"
+        case soldAt           = "sold_at"
         case updatedAt        = "updated_at"
         case deletedAt        = "deleted_at"
     }

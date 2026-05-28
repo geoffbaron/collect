@@ -58,6 +58,10 @@
 		A10068 /* SyncDTOs.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10068 /* SyncDTOs.swift */; };
 		A10069 /* MigrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10069 /* MigrationService.swift */; };
 		A10070 /* RestoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10070 /* RestoreService.swift */; };
+		A10071 /* Marketplace.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10071 /* Marketplace.swift */; };
+		A10072 /* ListingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10072 /* ListingService.swift */; };
+		A10073 /* ListingPrepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10073 /* ListingPrepView.swift */; };
+		A10074 /* ListingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10074 /* ListingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -112,6 +116,10 @@
 		B10068 /* SyncDTOs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncDTOs.swift; sourceTree = "<group>"; };
 		B10069 /* MigrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationService.swift; sourceTree = "<group>"; };
 		B10070 /* RestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestoreService.swift; sourceTree = "<group>"; };
+		B10071 /* Marketplace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Marketplace.swift; sourceTree = "<group>"; };
+		B10072 /* ListingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListingService.swift; sourceTree = "<group>"; };
+		B10073 /* ListingPrepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListingPrepView.swift; sourceTree = "<group>"; };
+		B10074 /* ListingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -161,6 +169,7 @@
 				B10008 /* PromptType.swift */,
 				B10050 /* RoomLayout.swift */,
 				B10064 /* UsageLimits.swift */,
+				B10071 /* Marketplace.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -180,6 +189,7 @@
 				B10068 /* SyncDTOs.swift */,
 				B10069 /* MigrationService.swift */,
 				B10070 /* RestoreService.swift */,
+				B10072 /* ListingService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -194,6 +204,7 @@
 				D10014 /* Analysis */,
 				D10015 /* Collection */,
 				D10016 /* Components */,
+				D10017 /* Marketplace */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -301,6 +312,15 @@
 				B10033 /* OnboardingView.swift */,
 			);
 			path = Components;
+			sourceTree = "<group>";
+		};
+		D10017 /* Marketplace */ = {
+			isa = PBXGroup;
+			children = (
+				B10073 /* ListingPrepView.swift */,
+				B10074 /* ListingsView.swift */,
+			);
+			path = Marketplace;
 			sourceTree = "<group>";
 		};
 		D10099 /* Products */ = {
@@ -435,6 +455,10 @@
 				A10068 /* SyncDTOs.swift in Sources */,
 				A10069 /* MigrationService.swift in Sources */,
 				A10070 /* RestoreService.swift in Sources */,
+				A10071 /* Marketplace.swift in Sources */,
+				A10072 /* ListingService.swift in Sources */,
+				A10073 /* ListingPrepView.swift in Sources */,
+				A10074 /* ListingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -561,6 +585,7 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "Collect needs camera access to record room videos for asset collection.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Collect uses your location to tag where each asset is found, so you can map them later.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Collect needs microphone access for video recording.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Collect saves your asset photos to Photos so you can attach them to marketplace listings.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -593,6 +618,7 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "Collect needs camera access to record room videos for asset collection.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Collect uses your location to tag where each asset is found, so you can map them later.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Collect needs microphone access for video recording.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Collect saves your asset photos to Photos so you can attach them to marketplace listings.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

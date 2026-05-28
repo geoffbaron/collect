@@ -12,6 +12,7 @@ struct PropertyListView: View {
     @State private var newPropertyAddress = ""
     @State private var showSettings = false
     @State private var showLimitAlert = false
+    @State private var showListings = false
 
     private var atPropertyLimit: Bool {
         let max = limitsService.limits.maxProperties
@@ -41,6 +42,14 @@ struct PropertyListView: View {
                     }
                 }
 
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showListings = true
+                    } label: {
+                        Image(systemName: "storefront")
+                    }
+                }
+
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         if atPropertyLimit { showLimitAlert = true }
@@ -52,6 +61,9 @@ struct PropertyListView: View {
             }
             .sheet(isPresented: $showSettings) {
                 SettingsView()
+            }
+            .sheet(isPresented: $showListings) {
+                ListingsView()
             }
             .alert("Property limit reached", isPresented: $showLimitAlert) {
                 Button("OK", role: .cancel) {}

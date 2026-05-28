@@ -100,6 +100,17 @@ final class RestoreService {
             asset.layoutX        = dto.layoutX.map { Float($0) }
             asset.layoutZ        = dto.layoutZ.map { Float($0) }
             asset.isConfirmed    = dto.isConfirmed
+            // Listing fields (optional on older rows)
+            asset.listingStatus       = dto.listingStatus   ?? ListingStatus.notListed.rawValue
+            asset.listingTitle        = dto.listingTitle
+            asset.listingDescription  = dto.listingDescription
+            asset.askingPrice         = dto.askingPrice
+            asset.listedFacebook      = dto.listedFacebook  ?? false
+            asset.listedCraigslist    = dto.listedCraigslist ?? false
+            asset.listedAt            = dto.listedAt
+            asset.soldPrice           = dto.soldPrice
+            asset.soldPlatform        = dto.soldPlatform
+            asset.soldAt              = dto.soldAt
             // Must insert before writing @Attribute(.externalStorage) data
             modelContext.insert(asset)
             assetObjects.append((asset, dto))
