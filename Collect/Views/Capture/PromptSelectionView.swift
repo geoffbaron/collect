@@ -1,4 +1,5 @@
 import SwiftUI
+import ARKit
 
 struct PromptSelectionView: View {
     let room: Room
@@ -9,12 +10,18 @@ struct PromptSelectionView: View {
     @State private var customPrompt = ""
     @State private var includeLayoutScan: Bool
 
+    private var lidarAvailable: Bool {
+        ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh)
+    }
+
     init(room: Room, onSelected: @escaping (PromptTemplate, Bool) -> Void, onCancel: @escaping () -> Void) {
         self.room = room
         self.onSelected = onSelected
         self.onCancel = onCancel
-        // Default ON when the room has no layout yet
-        self._includeLayoutScan = State(initialValue: room.layoutData == nil)
+        // Default ON when the room has no layout yet (only if LiDAR is available)
+        self._includeLayoutScan = State(
+            initialValue: ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh) && room.layoutData == nil
+        )
     }
 
     var body: some View {
@@ -52,25 +59,27 @@ struct PromptSelectionView: View {
                     .listRowInsets(.init())
             }
 
-            Section {
-                Toggle(isOn: $includeLayoutScan) {
-                    Label {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Map Room Layout")
-                                .font(.headline)
-                            Text(room.layoutData == nil
-                                 ? "Scan with LiDAR before collecting assets"
-                                 : "Rescan to update existing floor plan")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+            if lidarAvailable {
+                Section {
+                    Toggle(isOn: $includeLayoutScan) {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Map Room Layout")
+                                    .font(.headline)
+                                Text(room.layoutData == nil
+                                     ? "Scan with LiDAR before collecting assets"
+                                     : "Rescan to update existing floor plan")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "map")
+                                .foregroundStyle(.blue)
                         }
-                    } icon: {
-                        Image(systemName: "map")
-                            .foregroundStyle(.blue)
                     }
+                } footer: {
+                    Text("Walk around the room slowly for best results.")
                 }
-            } footer: {
-                Text("Requires a device with LiDAR. Walk around the room slowly for best results.")
             }
 
             Section("Scan Types") {
@@ -143,6 +152,6 @@ struct PromptSelectionView: View {
                 userPromptPrefix: custom
             )
         }
-        onSelected(template, includeLayoutScan)
+        onSelected(template, lidarAvailable && includeLayoutScan)
     }
 }
