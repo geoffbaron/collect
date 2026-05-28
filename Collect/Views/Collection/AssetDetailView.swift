@@ -3,6 +3,7 @@ import MapKit
 
 struct AssetDetailView: View {
     @Bindable var asset: Asset
+    @EnvironmentObject private var syncService: SyncService
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @State private var isEditing = false
@@ -175,6 +176,10 @@ struct AssetDetailView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button(isEditing ? "Done" : "Edit") {
+                    if isEditing {
+                        // Sync edits when user taps Done
+                        syncService.enqueue(.upsertAsset(id: asset.id))
+                    }
                     isEditing.toggle()
                 }
             }
@@ -197,6 +202,7 @@ struct AssetDetailView: View {
             titleVisibility: .visible
         ) {
             Button("Remove Item", role: .destructive) {
+                syncService.enqueue(.softDeleteAsset(id: asset.id))
                 modelContext.delete(asset)
                 dismiss()
             }

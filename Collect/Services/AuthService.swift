@@ -30,7 +30,7 @@ final class AuthService: ObservableObject {
     private func startListening() {
         listenerTask = Task { [weak self] in
             guard let self else { return }
-            for await (event, session) in await auth.authStateChanges {
+            for await (event, session) in auth.authStateChanges {
                 guard !Task.isCancelled else { return }
                 switch event {
                 case .signedIn, .tokenRefreshed, .userUpdated:
@@ -85,8 +85,17 @@ final class AuthService: ObservableObject {
     }
 
     /// Local guest session — no Supabase account, data stays on-device only.
+    /// The guest ID is persisted in UserDefaults so properties survive app restarts.
     func signInAsGuest() {
-        currentUserID    = "guest_\(UUID().uuidString)"
+        let key = "collect_guest_user_id"
+        let guestID: String
+        if let saved = UserDefaults.standard.string(forKey: key) {
+            guestID = saved
+        } else {
+            guestID = "guest_\(UUID().uuidString)"
+            UserDefaults.standard.set(guestID, forKey: key)
+        }
+        currentUserID    = guestID
         currentUserEmail = nil
         currentUserName  = "Guest"
         isAuthenticated  = true
@@ -101,6 +110,19 @@ final class AuthService: ObservableObject {
 
     func deleteAccount(modelContext: ModelContext? = nil) async {
         isLoading = true
+        // Wipe cloud data before signing out so the session token is still valid
+        if let userID = currentUserID, !isGuest {
+            let db = SupabaseManager.shared.client
+            // Cascade deletes handle floors/rooms/collections/assets via FK
+            _ = try? await db.from("properties")
+                .delete()
+                .eq("user_id", value: userID)
+                .execute()
+            // Remove uploaded photos
+            _ = try? await db.storage.from("asset-photos").remove(paths: [userID + "/"])
+            // Clear the migration flag so a fresh sign-in starts clean
+            UserDefaults.standard.removeObject(forKey: "collect_migrated_\(userID)")
+        }
         if let context = modelContext {
             try? context.delete(model: Asset.self)
             try? context.delete(model: Collection.self)

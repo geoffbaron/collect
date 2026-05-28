@@ -52,6 +52,12 @@
 		A10062 /* FeaturesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10062 /* FeaturesService.swift */; };
 		A10063 /* LimitsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10063 /* LimitsService.swift */; };
 		A10064 /* UsageLimits.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10064 /* UsageLimits.swift */; };
+		A10065 /* GroupReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10065 /* GroupReviewView.swift */; };
+		A10066 /* SyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10066 /* SyncService.swift */; };
+		A10067 /* CloudRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10067 /* CloudRepository.swift */; };
+		A10068 /* SyncDTOs.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10068 /* SyncDTOs.swift */; };
+		A10069 /* MigrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10069 /* MigrationService.swift */; };
+		A10070 /* RestoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10070 /* RestoreService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -100,6 +106,12 @@
 		B10062 /* FeaturesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeaturesService.swift; sourceTree = "<group>"; };
 		B10063 /* LimitsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitsService.swift; sourceTree = "<group>"; };
 		B10064 /* UsageLimits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageLimits.swift; sourceTree = "<group>"; };
+		B10065 /* GroupReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupReviewView.swift; sourceTree = "<group>"; };
+		B10066 /* SyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncService.swift; sourceTree = "<group>"; };
+		B10067 /* CloudRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudRepository.swift; sourceTree = "<group>"; };
+		B10068 /* SyncDTOs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncDTOs.swift; sourceTree = "<group>"; };
+		B10069 /* MigrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationService.swift; sourceTree = "<group>"; };
+		B10070 /* RestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestoreService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -163,6 +175,11 @@
 				B10060 /* SupabaseManager.swift */,
 				B10062 /* FeaturesService.swift */,
 				B10063 /* LimitsService.swift */,
+				B10066 /* SyncService.swift */,
+				B10067 /* CloudRepository.swift */,
+				B10068 /* SyncDTOs.swift */,
+				B10069 /* MigrationService.swift */,
+				B10070 /* RestoreService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -262,6 +279,7 @@
 			children = (
 				B10026 /* AnalysisProgressView.swift */,
 				B10027 /* ResultsView.swift */,
+				B10065 /* GroupReviewView.swift */,
 			);
 			path = Analysis;
 			sourceTree = "<group>";
@@ -411,6 +429,12 @@
 				A10062 /* FeaturesService.swift in Sources */,
 				A10063 /* LimitsService.swift in Sources */,
 				A10064 /* UsageLimits.swift in Sources */,
+				A10065 /* GroupReviewView.swift in Sources */,
+				A10066 /* SyncService.swift in Sources */,
+				A10067 /* CloudRepository.swift in Sources */,
+				A10068 /* SyncDTOs.swift in Sources */,
+				A10069 /* MigrationService.swift in Sources */,
+				A10070 /* RestoreService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -10,6 +10,7 @@ struct ResultsView: View {
     let onSaved: () -> Void
 
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var syncService: SyncService
     @StateObject private var locationService = LocationService.shared
     @State private var items: [AssetResult]
     @State private var saved = false
@@ -110,6 +111,7 @@ struct ResultsView: View {
         let assetPairs = items.map { (name: $0.name, category: $0.category) }
         let positionMap = layout?.matchAssets(assetPairs) ?? [:]
 
+        var savedAssetIDs: [UUID] = []
         for (idx, item) in items.enumerated() {
             let asset = Asset(
                 name: item.name,
@@ -142,10 +144,21 @@ struct ResultsView: View {
                     asset.photo2Data = frames[idx2].jpegData(compressionQuality: 0.8)
                 }
             }
+            savedAssetIDs.append(asset.id)
         }
 
         try? modelContext.save()
         try? FileManager.default.removeItem(at: videoURL)
+
+        // Enqueue cloud sync — use the SwiftData Asset IDs, not AssetResult IDs
+        syncService.enqueue(.upsertCollection(id: collection.id))
+        for assetID in savedAssetIDs {
+            syncService.enqueue(.upsertAsset(id: assetID))
+        }
+        if capturedLayout != nil {
+            syncService.enqueue(.upsertRoom(id: room.id))
+        }
+
         saved = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { onSaved() }
     }
@@ -176,6 +189,14 @@ struct AssetEditRow: View {
                                 .clipShape(Capsule())
                             if let cond = item.condition {
                                 Text(cond).font(.caption).foregroundStyle(.secondary)
+                            }
+                            if item.groupingHint == .consolidated && item.quantity > 1 {
+                                Text("counted")
+                                    .font(.caption2.weight(.medium))
+                                    .padding(.horizontal, 6).padding(.vertical, 2)
+                                    .background(.green.opacity(0.12))
+                                    .foregroundStyle(.green)
+                                    .clipShape(Capsule())
                             }
                         }
                     }

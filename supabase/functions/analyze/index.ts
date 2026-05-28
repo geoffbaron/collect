@@ -23,13 +23,15 @@ interface AssetResult {
   confidence: number
   estimated_value?: number
   frame_indices: number[]
+  grouping_hint: "consolidated" | "possible_duplicate" | "unique"
+  duplicate_group?: string
 }
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-const GEMINI_MODEL   = "gemini-2.0-flash"
+const GEMINI_MODEL   = "gemini-3-flash-preview"
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY") ?? ""
 
 const CORS_HEADERS = {
@@ -49,33 +51,56 @@ serve(async (req: Request) => {
 
   // ── 1. Auth ──────────────────────────────────────────────────────────────
   const authHeader = req.headers.get("Authorization")
-  if (!authHeader) {
-    return json({ error: "Unauthorized" }, 401)
+  const bearerToken = authHeader?.replace(/^Bearer\s+/i, "").trim() ?? ""
+
+  // A real user JWT always starts with "eyJ" (base64-encoded JSON header).
+  // Guests send the anon key (sb_publishable_ format) — the function is deployed with
+  // --no-verify-jwt so the gateway passes it through; we detect it here and skip
+  // per-user features (quota, scan logging) for those callers.
+  const isGuest = !bearerToken || !bearerToken.startsWith("eyJ")
+
+  let user: { id: string } | null = null
+
+  if (!isGuest) {
+    // Validate the JWT and resolve the user
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader! } } }
+    )
+    try {
+      const { data, error: authError } = await supabase.auth.getUser()
+      if (authError || !data?.user) {
+        return json({ error: "Unauthorized" }, 401)
+      }
+      user = data.user
+    } catch {
+      return json({ error: "Unauthorized" }, 401)
+    }
   }
 
+  // Build a Supabase client for user-scoped RPCs (quota, limits, logging).
+  // For guests, this client will be anon-only (RPCs that need auth will just no-op).
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_ANON_KEY")!,
-    { global: { headers: { Authorization: authHeader } } }
+    authHeader ? { global: { headers: { Authorization: authHeader } } } : {}
   )
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return json({ error: "Unauthorized" }, 401)
-  }
-
-  // ── 2. Check monthly scan allowance ─────────────────────────────────────
-  try {
-    const { data: usage } = await supabase.rpc("get_scan_usage")
-    if (usage && usage.length > 0) {
-      const { scans_this_month, monthly_limit } = usage[0]
-      if (monthly_limit !== -1 && scans_this_month >= monthly_limit) {
-        return json({
-          error: `Monthly scan limit reached (${scans_this_month}/${monthly_limit}). Upgrade to Pro for unlimited scans.`
-        }, 429)
+  // ── 2. Check monthly scan allowance (authenticated users only) ───────────
+  if (!isGuest) {
+    try {
+      const { data: usage } = await supabase.rpc("get_scan_usage")
+      if (usage && usage.length > 0) {
+        const { scans_this_month, monthly_limit } = usage[0]
+        if (monthly_limit !== -1 && scans_this_month >= monthly_limit) {
+          return json({
+            error: `Monthly scan limit reached (${scans_this_month}/${monthly_limit}). Upgrade to Pro for unlimited scans.`
+          }, 429)
+        }
       }
-    }
-  } catch { /* allow through on RPC failure — don't block scans over infra issues */ }
+    } catch { /* allow through on RPC failure — don't block scans over infra issues */ }
+  }
 
   // ── 3. Parse request ─────────────────────────────────────────────────────
   let body: AnalyzeRequest
@@ -97,11 +122,22 @@ serve(async (req: Request) => {
   // ── 4. Build Gemini request ───────────────────────────────────────────────
   const frameCount = frames.length
   const frameSchema = `
-Also include:
+Also include these fields for every item:
 - "estimated_value": a number representing the estimated current market or replacement value \
 in USD for one unit of this item (omit the field if truly unknown, do not guess wildly).
 - "frame_indices": an array of exactly 1 or 2 integers (0-based, from 0 to ${frameCount - 1}) \
 identifying the frames where this specific asset is most clearly visible.
+- "grouping_hint": one of "consolidated" | "possible_duplicate" | "unique"
+  • "consolidated" — you counted multiple identical small/stackable items (cutlery, glasses, \
+plates, screws, cables) as a single entry; the quantity field already reflects the total count.
+  • "possible_duplicate" — you see 2 or more of the same larger or distinct item (matching \
+chairs, identical lamps, paired artworks) and the user may want them as separate records; \
+create ONE entry per physical item, each with quantity 1, and share a "duplicate_group" tag.
+  • "unique" — all other items, including books (always create one entry per distinct title \
+even if multiple copies exist, with quantity = copy count).
+- "duplicate_group": (string) ONLY when grouping_hint is "possible_duplicate" — a short \
+kebab-case tag shared by all items in the same group (e.g. "dining-chair", "floor-lamp"). \
+Omit this field for consolidated and unique items.
 `
   const systemPrompt = template.systemPrompt + "\n" + frameSchema
 
@@ -159,16 +195,17 @@ identifying the frames where this specific asset is most clearly visible.
   const assets  = maxAssets !== -1 ? allAssets.slice(0, maxAssets) : allAssets
   const success = assets.length > 0
 
-  // Log scan for analytics (fire-and-forget — don't block the response)
-  supabase.from("scans").insert({
-    user_id:     user.id,
-    prompt_type: body.template.type,
-    asset_count: assets.length,
-    success,
-  }).then(() => {})
+  // Log scan + increment counter for authenticated users only
+  if (!isGuest && user) {
+    supabase.from("scans").insert({
+      user_id:     user.id,
+      prompt_type: body.template.type,
+      asset_count: assets.length,
+      success,
+    }).then(() => {})
 
-  // Increment scan counter on profile
-  supabase.rpc("increment_scans_used", { user_id: user.id }).then(() => {})
+    supabase.rpc("increment_scans_used", { user_id: user.id }).then(() => {})
+  }
 
   return json({ assets })
 })
@@ -243,6 +280,14 @@ function mapAsset(item: Record<string, unknown>, frameCount: number): AssetResul
 
   const estimatedValue = typeof item.estimated_value === "number" ? item.estimated_value : undefined
 
+  const rawHint = item.grouping_hint as string | undefined
+  const groupingHint: AssetResult["grouping_hint"] =
+    rawHint === "consolidated" || rawHint === "possible_duplicate" ? rawHint : "unique"
+
+  const duplicateGroup = groupingHint === "possible_duplicate"
+    ? (item.duplicate_group as string | undefined)
+    : undefined
+
   return {
     name,
     category:        (item.category    as string | undefined) ?? "Other",
@@ -252,5 +297,7 @@ function mapAsset(item: Record<string, unknown>, frameCount: number): AssetResul
     confidence:      (item.confidence  as number | undefined) ?? 1.0,
     estimated_value: estimatedValue,
     frame_indices:   frameIndices,
+    grouping_hint:   groupingHint,
+    duplicate_group: duplicateGroup,
   }
 }

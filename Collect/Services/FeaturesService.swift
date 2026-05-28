@@ -15,6 +15,9 @@ final class FeaturesService: ObservableObject {
     /// Property map view and GPS tagging. Pro/Enterprise only.
     @Published var locationEnabled: Bool = false
 
+    /// Photo upload to Supabase Storage. Pro/Enterprise only.
+    @Published var cloudStorageEnabled: Bool = false
+
     // MARK: - Private
 
     private struct FeatureRow: Codable {
@@ -34,15 +37,17 @@ final class FeaturesService: ObservableObject {
                 .value
 
             let map = Dictionary(uniqueKeysWithValues: rows.map { ($0.key, $0.enabled) })
-            floorScansEnabled = map["floor_scans"]       ?? false
-            locationEnabled   = map["location_features"] ?? false
+            floorScansEnabled    = map["floor_scans"]       ?? false
+            locationEnabled      = map["location_features"] ?? false
+            cloudStorageEnabled  = map["cloud_storage"]     ?? false
         } catch {
             print("FeaturesService: fetch failed — \(error)")
         }
     }
 
     func reset() {
-        floorScansEnabled = false
-        locationEnabled   = false
+        floorScansEnabled   = false
+        locationEnabled     = false
+        cloudStorageEnabled = false
     }
 }

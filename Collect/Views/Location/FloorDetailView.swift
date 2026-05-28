@@ -3,6 +3,7 @@ import SwiftData
 
 struct FloorDetailView: View {
     @Bindable var floor: Floor
+    @EnvironmentObject private var syncService: SyncService
     @Environment(\.modelContext) private var modelContext
     @State private var showAddRoom = false
     @State private var newRoomName = ""
@@ -89,21 +90,22 @@ struct FloorDetailView: View {
     }
 
     private func addRoom(name: String) {
-        withAnimation {
-            addedNames.insert(name)
-        }
+        withAnimation { _ = addedNames.insert(name) }
         let room = Room(name: name, floor: floor)
         modelContext.insert(room)
         try? modelContext.save()
         if let property = floor.property {
             property.updatedAt = Date()
         }
+        syncService.enqueue(.upsertRoom(id: room.id))
     }
 
     private func deleteRooms(at offsets: IndexSet) {
         let sorted = floor.sortedRooms
         for index in offsets {
-            modelContext.delete(sorted[index])
+            let room = sorted[index]
+            syncService.enqueue(.softDeleteRoom(id: room.id))
+            modelContext.delete(room)
         }
     }
 }

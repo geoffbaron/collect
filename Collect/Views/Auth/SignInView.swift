@@ -102,7 +102,7 @@ struct SignInView: View {
                     VStack(spacing: 16) {
                         // Try without account
                         Button {
-                            Task { await authService.signInAsGuest() }
+                            authService.signInAsGuest()
                         } label: {
                             Text("Try Now")
                                 .font(.subheadline.weight(.semibold))

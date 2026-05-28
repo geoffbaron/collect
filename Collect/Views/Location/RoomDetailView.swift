@@ -5,6 +5,7 @@ struct RoomDetailView: View {
     @Bindable var room: Room
     @EnvironmentObject private var featuresService: FeaturesService
     @EnvironmentObject private var limitsService: LimitsService
+    @EnvironmentObject private var syncService: SyncService
     @Environment(\.modelContext) private var modelContext
     @State private var showScan = false
     @State private var showRoomScan = false
@@ -141,6 +142,8 @@ struct RoomDetailView: View {
             if featuresService.floorScansEnabled {
                 RoomScanSheet(roomName: room.name) { layout in
                     room.layoutData = layout.toData()
+                    // Room metadata (map position) syncs; layout binary stays local-only
+                    syncService.enqueue(.upsertRoom(id: room.id))
                 }
             }
         }
@@ -148,7 +151,9 @@ struct RoomDetailView: View {
 
     private func deleteCollections(at offsets: IndexSet) {
         for index in offsets {
-            modelContext.delete(collections[index])
+            let collection = collections[index]
+            syncService.enqueue(.softDeleteCollection(id: collection.id))
+            modelContext.delete(collection)
         }
     }
 }

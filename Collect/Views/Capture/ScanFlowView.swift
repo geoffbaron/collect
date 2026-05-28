@@ -11,6 +11,7 @@ struct ScanFlowView: View {
         case promptSelection
         case videoCapture(PromptTemplate, RoomLayout?)
         case analysis(PromptTemplate, URL, RoomLayout?)
+        case groupReview(PromptTemplate, ScanResult, URL, RoomLayout?)
         case results(PromptTemplate, ScanResult, URL, RoomLayout?)
     }
 
@@ -69,9 +70,21 @@ struct ScanFlowView: View {
                 template: template,
                 videoURL: url
             ) { scanResult in
-                step = .results(template, scanResult, url, layout)
+                // Route through group review if AI flagged possible duplicates
+                if scanResult.possibleDuplicateGroups.isEmpty {
+                    step = .results(template, scanResult, url, layout)
+                } else {
+                    step = .groupReview(template, scanResult, url, layout)
+                }
             } onFailed: { _ in
                 // Stay on analysis screen — it shows a retry button
+            }
+
+        case .groupReview(let template, let scanResult, let url, let layout):
+            GroupReviewView(scanResult: scanResult) { resolvedAssets in
+                // Build a new ScanResult with the user's grouping decisions applied
+                let resolved = ScanResult(assets: resolvedAssets, selectedFrames: scanResult.selectedFrames)
+                step = .results(template, resolved, url, layout)
             }
 
         case .results(let template, let scanResult, let url, let layout):

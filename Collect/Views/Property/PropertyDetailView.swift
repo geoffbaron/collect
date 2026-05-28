@@ -4,6 +4,7 @@ import SwiftData
 struct PropertyDetailView: View {
     @Bindable var property: Property
     @EnvironmentObject private var featuresService: FeaturesService
+    @EnvironmentObject private var syncService: SyncService
     @Environment(\.modelContext) private var modelContext
     @State private var showAddFloor = false
     @State private var newFloorName = ""
@@ -139,15 +140,20 @@ struct PropertyDetailView: View {
         let floor = Floor(name: newFloorName, sortOrder: property.floors.count, property: property)
         modelContext.insert(floor)
         property.updatedAt = Date()
+        syncService.enqueue(.upsertFloor(id: floor.id))
+        syncService.enqueue(.upsertProperty(id: property.id))
         newFloorName = ""
     }
 
     private func deleteFloors(at offsets: IndexSet) {
         let sorted = property.sortedFloors
         for index in offsets {
-            modelContext.delete(sorted[index])
+            let floor = sorted[index]
+            syncService.enqueue(.softDeleteFloor(id: floor.id))
+            modelContext.delete(floor)
         }
         property.updatedAt = Date()
+        syncService.enqueue(.upsertProperty(id: property.id))
     }
 }
 

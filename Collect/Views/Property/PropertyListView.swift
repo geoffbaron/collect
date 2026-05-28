@@ -4,6 +4,7 @@ import SwiftData
 struct PropertyListView: View {
     @EnvironmentObject private var authService: AuthService
     @EnvironmentObject private var limitsService: LimitsService
+    @EnvironmentObject private var syncService: SyncService
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Property.updatedAt, order: .reverse) private var properties: [Property]
     @State private var showAddProperty = false
@@ -96,7 +97,7 @@ struct PropertyListView: View {
                 else               { showAddProperty = true }
             } label: {
                 Label("Add Property", systemImage: atPropertyLimit ? "lock.circle" : "plus.circle")
-                    .foregroundStyle(atPropertyLimit ? .secondary : .blue)
+                    .foregroundStyle(atPropertyLimit ? Color(uiColor: .secondaryLabel) : .blue)
             }
         }
         .navigationDestination(for: Property.self) { property in
@@ -114,12 +115,15 @@ struct PropertyListView: View {
         guard !newPropertyName.isEmpty, let userID = authService.currentUserID else { return }
         let property = Property(name: newPropertyName, address: newPropertyAddress, ownerID: userID)
         modelContext.insert(property)
+        syncService.enqueue(.upsertProperty(id: property.id))
         resetForm()
     }
 
     private func deleteProperties(at offsets: IndexSet) {
         for index in offsets {
-            modelContext.delete(userProperties[index])
+            let property = userProperties[index]
+            syncService.enqueue(.softDeleteProperty(id: property.id))
+            modelContext.delete(property)
         }
     }
 
