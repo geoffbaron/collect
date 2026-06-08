@@ -1,6 +1,28 @@
 import Foundation
 import UIKit
 
+// MARK: - Image scaling
+
+extension UIImage {
+    /// Returns a copy scaled so its longest side is at most `maxDimension` pixels,
+    /// preserving aspect ratio. Images already within bounds are returned unchanged.
+    /// Mirrors the 768px cap FrameExtractor applies to video frames so photo
+    /// payloads stay small enough for the analyze Edge Function / Gemini.
+    func downscaled(maxDimension: CGFloat) -> UIImage {
+        let longest = max(size.width, size.height)
+        guard longest > maxDimension, longest > 0 else { return self }
+        let factor = maxDimension / longest
+        let newSize = CGSize(width: size.width * factor, height: size.height * factor)
+
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1   // treat newSize as pixels, not points
+        let renderer = UIGraphicsImageRenderer(size: newSize, format: format)
+        return renderer.image { _ in
+            draw(in: CGRect(origin: .zero, size: newSize))
+        }
+    }
+}
+
 // MARK: - Result types
 
 enum GroupingHint: String {
@@ -85,14 +107,19 @@ actor AIService {
         // Adaptive frame selection (same logic as before)
         let maxFrames = 20
         let step = max(1, frames.count / maxFrames)
-        let selected = Array(
-            stride(from: 0, to: frames.count, by: step)
-                .prefix(maxFrames)
-                .map { frames[$0] }
-        )
+        let picked = stride(from: 0, to: frames.count, by: step)
+            .prefix(maxFrames)
+            .map { frames[$0] }
+
+        // Downscale to a 768px max dimension once, up front. Video frames already
+        // arrive capped (FrameExtractor), but photos from the camera/library are
+        // full-resolution — without this, multi-megapixel images bloat the request
+        // payload (surfacing as a 502) and the per-asset photos saved later. Using
+        // the scaled copies for both the upload AND the returned selectedFrames
+        // keeps stored/synced photos small too.
+        let selected = picked.map { $0.downscaled(maxDimension: 768) }
         let quality: CGFloat = selected.count > 12 ? 0.45 : 0.65
 
-        // Encode frames as base64 JPEG
         let base64Frames = selected.compactMap {
             $0.jpegData(compressionQuality: quality)?.base64EncodedString()
         }

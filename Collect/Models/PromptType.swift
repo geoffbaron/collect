@@ -8,6 +8,7 @@ enum PromptType: String, CaseIterable, Identifiable {
     case safetyEquipment
     case damageAssessment
     case propertyManagement
+    case singleItem
     case custom
 
     var id: String { rawValue }
@@ -21,6 +22,7 @@ enum PromptType: String, CaseIterable, Identifiable {
         case .safetyEquipment:    "Safety Equipment"
         case .damageAssessment:   "Damage Assessment"
         case .propertyManagement: "Property Management"
+        case .singleItem:         "Single Item"
         case .custom:             "Custom Prompt"
         }
     }
@@ -34,6 +36,7 @@ enum PromptType: String, CaseIterable, Identifiable {
         case .safetyEquipment:    "exclamationmark.shield"
         case .damageAssessment:   "exclamationmark.triangle"
         case .propertyManagement: "building.2"
+        case .singleItem:         "viewfinder"
         case .custom:             "text.cursor"
         }
     }
@@ -47,6 +50,7 @@ enum PromptType: String, CaseIterable, Identifiable {
         case .safetyEquipment:    "Locate fire extinguishers, smoke detectors, exit signs, and safety gear"
         case .damageAssessment:   "Document visible damage — cracks, stains, wear, and needed repairs"
         case .propertyManagement: "Catalog landlord-owned fixtures, appliances, and systems with serial numbers and condition"
+        case .singleItem:         "Identify just the main item you photograph, ignoring the background"
         case .custom:             "Describe what you want to collect"
         }
     }

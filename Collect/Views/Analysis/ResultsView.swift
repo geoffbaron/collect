@@ -5,8 +5,11 @@ struct ResultsView: View {
     let room: Room
     let template: PromptTemplate
     let scanResult: ScanResult
-    let videoURL: URL
+    let source: ScanSource
     let capturedLayout: RoomLayout?
+    /// When analyzing a saved draft, the draft collection to fill in place of
+    /// creating a new one. nil for a normal scan.
+    let existingCollection: Collection?
     let onSaved: () -> Void
 
     @Environment(\.modelContext) private var modelContext
@@ -15,12 +18,13 @@ struct ResultsView: View {
     @State private var items: [AssetResult]
     @State private var saved = false
 
-    init(room: Room, template: PromptTemplate, scanResult: ScanResult, videoURL: URL, capturedLayout: RoomLayout? = nil, onSaved: @escaping () -> Void) {
+    init(room: Room, template: PromptTemplate, scanResult: ScanResult, source: ScanSource, capturedLayout: RoomLayout? = nil, existingCollection: Collection? = nil, onSaved: @escaping () -> Void) {
         self.room = room
         self.template = template
         self.scanResult = scanResult
-        self.videoURL = videoURL
+        self.source = source
         self.capturedLayout = capturedLayout
+        self.existingCollection = existingCollection
         self.onSaved = onSaved
         self._items = State(initialValue: scanResult.assets)
     }
@@ -88,17 +92,28 @@ struct ResultsView: View {
             }
         }
         .animation(.easeInOut, value: saved)
-        .onAppear { locationService.requestPermissionAndStart() }
+        .onAppear { if existingCollection == nil { locationService.requestPermissionAndStart() } }
         .onDisappear { locationService.stopUpdating() }
     }
 
     private func save() {
-        let collection = Collection(promptType: template.type, room: room)
-        collection.status = .completed
-        modelContext.insert(collection)
+        let collection: Collection
+        if let existing = existingCollection {
+            // Analyzing a draft — fill it in place and clear the held media.
+            collection = existing
+            collection.status = .completed
+            collection.pendingPhotos = nil
+            collection.videoFileName = nil
+        } else {
+            collection = Collection(promptType: template.type, room: room)
+            collection.status = .completed
+            modelContext.insert(collection)
+        }
 
-        let lat = locationService.coordinate?.latitude
-        let lon = locationService.coordinate?.longitude
+        // Don't tag GPS when analyzing a draft — the user is likely at their desk,
+        // not where the item is, so a live coordinate would be wrong.
+        let lat = existingCollection == nil ? locationService.coordinate?.latitude  : nil
+        let lon = existingCollection == nil ? locationService.coordinate?.longitude : nil
         let frames = scanResult.selectedFrames
 
         // Save freshly scanned layout to room (if one was captured in this session)
@@ -148,7 +163,9 @@ struct ResultsView: View {
         }
 
         try? modelContext.save()
-        try? FileManager.default.removeItem(at: videoURL)
+        if case .video(let videoURL) = source {
+            try? FileManager.default.removeItem(at: videoURL)
+        }
 
         // Enqueue cloud sync — use the SwiftData Asset IDs, not AssetResult IDs
         syncService.enqueue(.upsertCollection(id: collection.id))

@@ -13,6 +13,7 @@ struct PropertyListView: View {
     @State private var showSettings = false
     @State private var showLimitAlert = false
     @State private var showListings = false
+    @State private var showSearch = false
 
     private var atPropertyLimit: Bool {
         let max = limitsService.limits.maxProperties
@@ -44,6 +45,14 @@ struct PropertyListView: View {
 
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
+                        showSearch = true
+                    } label: {
+                        Image(systemName: "magnifyingglass")
+                    }
+                }
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
                         showListings = true
                     } label: {
                         Image(systemName: "storefront")
@@ -64,6 +73,9 @@ struct PropertyListView: View {
             }
             .sheet(isPresented: $showListings) {
                 ListingsView()
+            }
+            .sheet(isPresented: $showSearch) {
+                ItemSearchView(ownerID: authService.currentUserID)
             }
             .alert("Property limit reached", isPresented: $showLimitAlert) {
                 Button("OK", role: .cancel) {}
@@ -142,6 +154,89 @@ struct PropertyListView: View {
     private func resetForm() {
         newPropertyName = ""
         newPropertyAddress = ""
+    }
+}
+
+// MARK: - Universal item search
+
+/// Searches every item the user owns, across all properties / floors / rooms,
+/// by name, category, or description. Tapping a result opens the asset detail.
+struct ItemSearchView: View {
+    let ownerID: String?
+    @Environment(\.dismiss) private var dismiss
+    @Query private var allAssets: [Asset]
+    @State private var query = ""
+
+    private var trimmedQuery: String {
+        query.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var results: [Asset] {
+        let q = trimmedQuery.lowercased()
+        guard !q.isEmpty else { return [] }
+        return allAssets
+            .filter { $0.collection?.room?.floor?.property?.ownerID == ownerID }
+            .filter {
+                $0.name.lowercased().contains(q)
+                || $0.category.lowercased().contains(q)
+                || $0.assetDescription.lowercased().contains(q)
+            }
+            .sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
+    }
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if trimmedQuery.isEmpty {
+                    ContentUnavailableView(
+                        "Search Items",
+                        systemImage: "magnifyingglass",
+                        description: Text("Find any item across all your properties by name, category, or description.")
+                    )
+                } else if results.isEmpty {
+                    ContentUnavailableView.search(text: query)
+                } else {
+                    List(results) { asset in
+                        NavigationLink(value: asset) {
+                            LocatedAssetRow(asset: asset)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Search Items")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(for: Asset.self) { asset in
+                AssetDetailView(asset: asset)
+            }
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+            .searchable(
+                text: $query,
+                placement: .navigationBarDrawer(displayMode: .always),
+                prompt: "Name, category, or description"
+            )
+        }
+    }
+}
+
+/// An AssetRow with the item's location path shown underneath — used in search
+/// results where items come from many different rooms.
+struct LocatedAssetRow: View {
+    let asset: Asset
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            AssetRow(asset: asset)
+            if let path = asset.collection?.room?.locationPath {
+                Label(path, systemImage: "mappin.and.ellipse")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+        }
     }
 }
 

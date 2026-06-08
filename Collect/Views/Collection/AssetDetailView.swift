@@ -238,6 +238,45 @@ struct AssetDetailView: View {
                 }
             }
 
+        case .ready:
+            Section("Sell") {
+                Label("Ready to publish", systemImage: "shippingbox")
+                    .foregroundStyle(.purple)
+                if !asset.listedMarketplaces.isEmpty {
+                    LabeledContent("Prepared for") {
+                        Text(asset.listedMarketplaces.map(\.shortName).joined(separator: ", "))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                if let p = asset.askingPrice {
+                    LabeledContent("Asking") {
+                        Text(p, format: .currency(code: "USD"))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Text("Open the Collect extension in Chrome and tap Fill to publish this listing.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Button {
+                    showListingPrep = true
+                } label: {
+                    Label("Edit Listing", systemImage: "pencil")
+                        .foregroundStyle(.blue)
+                }
+                Button(role: .destructive) {
+                    asset.listing          = .notListed
+                    asset.listedFacebook   = false
+                    asset.listedCraigslist = false
+                    asset.listedAt         = nil
+                    try? modelContext.save()
+                    syncService.enqueue(.upsertAsset(id: asset.id))
+                } label: {
+                    Label("Unlist", systemImage: "xmark.bin")
+                        .font(.subheadline)
+                }
+            }
+
         case .listed, .pending:
             Section("Sell") {
                 // Platforms

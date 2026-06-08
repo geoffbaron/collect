@@ -113,6 +113,7 @@ struct AssetUpsertDTO: Encodable {
     let soldPrice: Double?
     let soldPlatform: String?
     let soldAt: Date?
+    let listingURL: String?
     let updatedAt: Date
 
     enum CodingKeys: String, CodingKey {
@@ -139,6 +140,7 @@ struct AssetUpsertDTO: Encodable {
         case soldPrice        = "sold_price"
         case soldPlatform     = "sold_platform"
         case soldAt           = "sold_at"
+        case listingURL       = "listing_url"
         case updatedAt        = "updated_at"
     }
 }
@@ -270,6 +272,7 @@ struct AssetFetchDTO: Decodable {
     let soldPrice: Double?
     let soldPlatform: String?
     let soldAt: Date?
+    let listingURL: String?
     let updatedAt: Date
     let deletedAt: Date?
 
@@ -297,6 +300,7 @@ struct AssetFetchDTO: Decodable {
         case soldPrice        = "sold_price"
         case soldPlatform     = "sold_platform"
         case soldAt           = "sold_at"
+        case listingURL       = "listing_url"
         case updatedAt        = "updated_at"
         case deletedAt        = "deleted_at"
     }

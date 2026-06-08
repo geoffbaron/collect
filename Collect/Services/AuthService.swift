@@ -33,7 +33,7 @@ final class AuthService: ObservableObject {
             for await (event, session) in auth.authStateChanges {
                 guard !Task.isCancelled else { return }
                 switch event {
-                case .signedIn, .tokenRefreshed, .userUpdated:
+                case .initialSession, .signedIn, .tokenRefreshed, .userUpdated:
                     if let user = session?.user {
                         currentUserID    = user.id.uuidString
                         currentUserEmail = user.email

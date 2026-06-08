@@ -4,6 +4,7 @@ import SwiftUI
 
 enum ListingStatus: String, CaseIterable {
     case notListed  = "not_listed"
+    case ready      = "ready"
     case listed     = "listed"
     case pending    = "pending"
     case sold       = "sold"
@@ -11,6 +12,7 @@ enum ListingStatus: String, CaseIterable {
     var displayName: String {
         switch self {
         case .notListed: "Not Listed"
+        case .ready:     "Ready"
         case .listed:    "Listed"
         case .pending:   "Pending"
         case .sold:      "Sold"
@@ -20,6 +22,7 @@ enum ListingStatus: String, CaseIterable {
     var icon: String {
         switch self {
         case .notListed: "tag"
+        case .ready:     "shippingbox"
         case .listed:    "storefront"
         case .pending:   "clock"
         case .sold:      "checkmark.seal.fill"
@@ -29,6 +32,7 @@ enum ListingStatus: String, CaseIterable {
     var color: Color {
         switch self {
         case .notListed: .secondary
+        case .ready:     .purple
         case .listed:    .blue
         case .pending:   .orange
         case .sold:      .green

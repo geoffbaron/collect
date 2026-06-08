@@ -111,6 +111,7 @@ final class RestoreService {
             asset.soldPrice           = dto.soldPrice
             asset.soldPlatform        = dto.soldPlatform
             asset.soldAt              = dto.soldAt
+            asset.listingURL          = dto.listingURL
             // Must insert before writing @Attribute(.externalStorage) data
             modelContext.insert(asset)
             assetObjects.append((asset, dto))

@@ -4,7 +4,8 @@ import AVFoundation
 struct VideoCaptureView: View {
     let room: Room
     let template: PromptTemplate
-    let onVideoRecorded: (URL) -> Void
+    let onAnalyzeNow: (URL) -> Void
+    let onSaveDraft: (URL) -> Void
 
     @EnvironmentObject private var limitsService: LimitsService
     @StateObject private var camera = CameraController()
@@ -12,6 +13,8 @@ struct VideoCaptureView: View {
     @State private var elapsedSeconds = 0
     @State private var timer: Timer?
     @State private var showLimitWarning = false
+    /// Set once a recording finishes — shows the Analyze Now / Save Draft choice.
+    @State private var recordedURL: URL?
 
     private var maxSeconds: Int { limitsService.limits.maxVideoSeconds }
     private var isUnlimited: Bool { limitsService.limits.isVideoUnlimited }
@@ -122,6 +125,12 @@ struct VideoCaptureView: View {
                     .animation(.easeInOut(duration: 0.15), value: isRecording)
                 }
                 .padding(.bottom, 48)
+                .opacity(recordedURL == nil ? 1 : 0)
+            }
+
+            // Post-record choice overlay
+            if let url = recordedURL {
+                reviewOverlay(url: url)
             }
         }
         .navigationBarHidden(true)
@@ -137,6 +146,67 @@ struct VideoCaptureView: View {
         }
     }
 
+    // MARK: - Post-record choice
+
+    @ViewBuilder
+    private func reviewOverlay(url: URL) -> some View {
+        ZStack {
+            Color.black.opacity(0.65).ignoresSafeArea()
+            VStack(spacing: 18) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 54))
+                    .foregroundStyle(.white)
+                Text("Recording Saved")
+                    .font(.title3.bold())
+                    .foregroundStyle(.white)
+                Text("Analyze it now, or save it as a draft and analyze later — handy on slow Wi-Fi.")
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.8))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 36)
+
+                VStack(spacing: 12) {
+                    Button {
+                        onAnalyzeNow(url)
+                    } label: {
+                        Label("Analyze Now", systemImage: "sparkles")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+
+                    Button {
+                        onSaveDraft(url)
+                    } label: {
+                        Label("Save as Draft — Analyze Later", systemImage: "tray.and.arrow.down")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .tint(.white)
+
+                    Button(role: .destructive) {
+                        retake(url)
+                    } label: {
+                        Label("Retake", systemImage: "arrow.counterclockwise")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.white)
+                }
+                .padding(.horizontal, 32)
+                .padding(.top, 6)
+            }
+        }
+        .transition(.opacity)
+    }
+
+    private func retake(_ url: URL) {
+        try? FileManager.default.removeItem(at: url)
+        recordedURL = nil
+        elapsedSeconds = 0
+    }
+
     // MARK: - Recording
 
     private func toggleRecording() {
@@ -148,7 +218,7 @@ struct VideoCaptureView: View {
             .appendingPathComponent(UUID().uuidString + ".mov")
         camera.startRecording(to: url) { result in
             switch result {
-            case .success(let videoURL): onVideoRecorded(videoURL)
+            case .success(let videoURL): recordedURL = videoURL   // show Analyze/Draft choice
             case .failure(let err):      print("Recording failed: \(err)")
             }
         }

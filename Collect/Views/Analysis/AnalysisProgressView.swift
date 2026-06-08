@@ -3,7 +3,7 @@ import SwiftUI
 struct AnalysisProgressView: View {
     let room: Room
     let template: PromptTemplate
-    let videoURL: URL
+    let source: ScanSource
     let onCompleted: (ScanResult) -> Void
     let onFailed: (String) -> Void
 
@@ -51,7 +51,7 @@ struct AnalysisProgressView: View {
     }
 
     private func runAnalysis() async {
-        await vm.analyze(videoURL: videoURL, template: template)
+        await vm.analyze(source: source, template: template)
         switch vm.phase {
         case .completed(let result): onCompleted(result)
         case .failed(let msg): onFailed(msg)
@@ -82,7 +82,8 @@ struct AnalysisProgressView: View {
         switch vm.phase {
         case .idle: "Preparing…"
         case .extractingFrames: "Extracting Frames"
-        case .analyzing(let n): "Analyzing \(n) Frames"
+        case .analyzing(let n):
+            if case .photos = source { "Analyzing \(n) Photos" } else { "Analyzing \(n) Frames" }
         case .completed(let r): "Found \(r.assets.count) Items"
         case .failed: "Analysis Failed"
         }
