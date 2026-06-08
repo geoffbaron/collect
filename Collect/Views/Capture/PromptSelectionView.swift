@@ -3,18 +3,19 @@ import ARKit
 
 struct PromptSelectionView: View {
     let room: Room
-    let onSelected: (PromptTemplate, Bool) -> Void
+    let onSelected: (PromptTemplate, Bool, CaptureMode) -> Void
     let onCancel: () -> Void
 
     @EnvironmentObject private var limitsService: LimitsService
     @State private var customPrompt = ""
+    @State private var captureMode: CaptureMode = .video
     @State private var includeLayoutScan: Bool
 
     private var lidarAvailable: Bool {
         ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh)
     }
 
-    init(room: Room, onSelected: @escaping (PromptTemplate, Bool) -> Void, onCancel: @escaping () -> Void) {
+    init(room: Room, onSelected: @escaping (PromptTemplate, Bool, CaptureMode) -> Void, onCancel: @escaping () -> Void) {
         self.room = room
         self.onSelected = onSelected
         self.onCancel = onCancel
@@ -59,6 +60,19 @@ struct PromptSelectionView: View {
                     .listRowInsets(.init())
             }
 
+            Section {
+                Picker("Capture", selection: $captureMode) {
+                    Label("Video", systemImage: "video.fill").tag(CaptureMode.video)
+                    Label("Photos", systemImage: "photo.on.rectangle").tag(CaptureMode.photos)
+                }
+                .pickerStyle(.segmented)
+                .disabled(!limitsService.canScan)
+            } footer: {
+                Text(captureMode == .video
+                     ? "Pan around the room and let AI catalog everything it sees."
+                     : "Add one or more photos — from your camera or library — and AI will catalog the items in them.")
+            }
+
             if lidarAvailable {
                 Section {
                     Toggle(isOn: $includeLayoutScan) {
@@ -83,7 +97,7 @@ struct PromptSelectionView: View {
             }
 
             Section("Scan Types") {
-                ForEach(PromptType.allCases.filter { $0 != .custom }) { type in
+                ForEach(PromptType.allCases.filter { $0 != .custom && $0 != .singleItem }) { type in
                     Button {
                         select(type: type, custom: nil)
                     } label: {
@@ -152,6 +166,6 @@ struct PromptSelectionView: View {
                 userPromptPrefix: custom
             )
         }
-        onSelected(template, lidarAvailable && includeLayoutScan)
+        onSelected(template, lidarAvailable && includeLayoutScan, captureMode)
     }
 }

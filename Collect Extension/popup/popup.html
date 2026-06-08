@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Collect Listings</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <header>
+    <div class="logo">
+      <span class="logo-icon">📦</span>
+      <span class="logo-text">Collect</span>
+    </div>
+    <div class="header-actions">
+      <button id="btn-refresh" class="btn-icon" hidden title="Refresh listings">↻</button>
+      <button id="btn-signout" class="btn-ghost" hidden>Sign out</button>
+    </div>
+  </header>
+
+  <!-- ── Sign-in view ── -->
+  <section id="view-signin">
+    <p class="hint">Sign in with your Collect account to access your listings.</p>
+    <form id="form-signin">
+      <label>
+        Email
+        <input id="inp-email" type="email" placeholder="you@example.com" autocomplete="email" required />
+      </label>
+      <label>
+        Password
+        <input id="inp-password" type="password" placeholder="••••••••" autocomplete="current-password" required />
+      </label>
+      <p id="signin-error" class="error" hidden></p>
+      <button type="submit" id="btn-signin" class="btn-primary">Sign In</button>
+    </form>
+  </section>
+
+  <!-- ── Listings view ── -->
+  <section id="view-listings" hidden>
+    <div id="platform-banner" hidden>
+      <span id="platform-name"></span>
+      <span class="platform-hint">detected — select a listing to fill the form</span>
+    </div>
+
+    <p id="no-listings" class="hint" hidden>
+      No active listings found.<br>Open an asset in the Collect app and tap "Prepare Listing," then open the app once to sync.
+    </p>
+
+    <ul id="listings-list"></ul>
+  </section>
+
+  <!-- ── Loading spinner ── -->
+  <div id="view-loading">
+    <div class="spinner"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

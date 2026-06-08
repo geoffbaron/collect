@@ -2,6 +2,13 @@ import Foundation
 import Observation
 import UIKit
 
+/// Where the frames to analyze come from. Video is extracted into frames first;
+/// photos are already frames and skip extraction.
+enum ScanSource {
+    case video(URL)
+    case photos([UIImage])
+}
+
 @MainActor
 @Observable
 final class AnalysisViewModel {
@@ -23,12 +30,21 @@ final class AnalysisViewModel {
         }
     }
 
-    func analyze(videoURL: URL, template: PromptTemplate) async {
-        phase = .extractingFrames
+    func analyze(source: ScanSource, template: PromptTemplate) async {
         do {
-            let frames = try await FrameExtractor.shared.extractFrames(from: videoURL)
+            let frames: [UIImage]
+            switch source {
+            case .video(let url):
+                phase = .extractingFrames
+                frames = try await FrameExtractor.shared.extractFrames(from: url)
+            case .photos(let images):
+                frames = images
+            }
             guard !frames.isEmpty else {
-                phase = .failed("Could not extract frames from video. Try recording again.")
+                switch source {
+                case .video:  phase = .failed("Could not extract frames from video. Try recording again.")
+                case .photos: phase = .failed("No usable photos. Try adding photos again.")
+                }
                 return
             }
 

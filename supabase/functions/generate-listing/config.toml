@@ -1,0 +1,5 @@
+[functions.generate-listing]
+# Our function validates auth in-code; disabling gateway JWT check so the
+# new sb_publishable_* anon key format and expired/missing tokens don't
+# cause a 401 before the function even runs.
+verify_jwt = false

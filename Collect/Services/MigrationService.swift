@@ -20,6 +20,24 @@ final class MigrationService {
             return
         }
 
+        // ── Guest data adoption ───────────────────────────────────────────────
+        // If the user previously used the app as a guest, their data is stored
+        // with ownerID = "guest_XXXX". Reassign it to their real account ID so
+        // the migration (and all future syncs) can find and upload it.
+        do {
+            let allProperties = try modelContext.fetch(FetchDescriptor<Property>())
+            let guestProperties = allProperties.filter { $0.ownerID.hasPrefix("guest_") }
+            if !guestProperties.isEmpty {
+                print("MigrationService: adopting \(guestProperties.count) guest-owned properties to \(userID)")
+                for property in guestProperties {
+                    property.ownerID = userID
+                }
+                try? modelContext.save()
+            }
+        } catch {
+            print("MigrationService: guest adoption fetch failed — \(error)")
+        }
+
         // Fetch all properties owned by this user
         let properties: [Property]
         do {

@@ -1,9 +1,10 @@
 import SwiftUI
-import Photos
 
 struct ListingPrepView: View {
     let asset: Asset
-    @EnvironmentObject private var syncService: SyncService
+    @EnvironmentObject private var syncService:    SyncService
+    @EnvironmentObject private var authService:    AuthService
+    @EnvironmentObject private var featuresService: FeaturesService
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
@@ -13,7 +14,7 @@ struct ListingPrepView: View {
     @State private var price: Double?
     @State private var priceRationale: String = ""
     @State private var phase: Phase          = .idle
-    @State private var showSoldSheet         = false
+    @State private var showReady             = false
 
     enum Phase { case idle, generating, ready, error(String) }
 
@@ -44,6 +45,9 @@ struct ListingPrepView: View {
             }
         }
         .task { await generate() }
+        .sheet(isPresented: $showReady, onDismiss: { dismiss() }) {
+            ListingReadySheet(platform: platform)
+        }
     }
 
     // MARK: - Sections
@@ -111,7 +115,7 @@ struct ListingPrepView: View {
                         .padding(.vertical, 4)
                     }
                     .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-                    Text("These photos will be saved to your Photos library when you tap Copy & Open.")
+                    Text("These photos sync with your listing and appear in the Collect extension.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 } header: {
@@ -155,12 +159,12 @@ struct ListingPrepView: View {
         }
     }
 
-    private var actionSection: some View {
+    @ViewBuilder private var actionSection: some View {
         Section {
             Button {
-                copyAndOpen()
+                saveForExtension()
             } label: {
-                Label("Copy & Open \(platform.shortName)", systemImage: "square.and.arrow.up")
+                Label("Make Available in Extension", systemImage: "puzzlepiece.extension.fill")
                     .frame(maxWidth: .infinity)
                     .font(.headline)
             }
@@ -169,7 +173,7 @@ struct ListingPrepView: View {
             .listRowInsets(.init())
             .padding(.vertical, 4)
         } footer: {
-            Text("Copies the listing to your clipboard and opens \(platform.displayName). Paste the text into the listing form.")
+            Text("Saves and syncs this listing so you can publish it to \(platform.displayName) from the Collect Chrome extension on your computer.")
         }
     }
 
@@ -210,56 +214,105 @@ struct ListingPrepView: View {
         }
     }
 
-    // MARK: - Copy & Open
+    // MARK: - Save for extension
 
-    private func copyAndOpen() {
-        // 1. Build clipboard text
-        var lines = [title, "", description]
-        if let p = price {
-            lines += ["", "Asking: \(p.formatted(.currency(code: "USD")))"]
-        }
-        UIPasteboard.general.string = lines.joined(separator: "\n")
-
-        // 2. Save photos to camera roll (silently — best-effort)
-        savePhotos()
-
-        // 3. Persist listing state on asset
+    /// Persists the listing and syncs it (photos included) so the Collect Chrome
+    /// extension can pick it up and publish it. Publishing itself happens entirely
+    /// in the extension — the app no longer opens the marketplace or copies text.
+    private func saveForExtension() {
+        // 1. Persist listing state on the asset. Status is "ready" — prepared and
+        // synced, visible in the extension, but not counted as "listed" until the
+        // user actually posts it via Fill in the extension.
         asset.listingTitle       = title
         asset.listingDescription = description
         asset.askingPrice        = price
         asset.listedAt           = Date()
-        asset.listing            = .listed
+        asset.listing            = .ready
         switch platform {
         case .facebook:   asset.listedFacebook   = true
         case .craigslist: asset.listedCraigslist  = true
         }
-        asset.updatedAt = Date()
         try? modelContext.save()
-        syncService.enqueue(.upsertAsset(id: asset.id))
 
-        // 4. Open platform
-        platform.open()
-
-        // 5. Dismiss
-        dismiss()
-    }
-
-    private func savePhotos() {
-        PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
-            guard status == .authorized || status == .limited else { return }
-            for data in asset.photos {
-                if let image = UIImage(data: data) {
-                    UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
-                }
+        // 2. Upload immediately so the extension can access the listing + photos
+        // right away. Bypass the queue for timing; queue a follow-up upsert too.
+        if featuresService.cloudStorageEnabled, let userID = authService.currentUserID {
+            Task {
+                try? await CloudRepository.shared.upsert(
+                    asset: asset, userID: userID, uploadPhotos: true
+                )
             }
+        } else {
+            syncService.enqueue(.upsertAsset(id: asset.id))
         }
+
+        // 3. Confirm it's ready in the extension (dismisses prep view on close)
+        showReady = true
     }
 }
 
-// MARK: - Asset helper (updatedAt)
-private extension Asset {
-    var updatedAt: Date {
-        get { collection?.capturedAt ?? Date() }  // read-only fallback; real field below
-        set { }                                    // no-op — updatedAt not on Asset directly
+// MARK: - Listing Ready Sheet
+
+/// Shown after a listing is saved & synced — confirms it's ready to publish from
+/// the Collect Chrome extension. Publishing happens entirely in the extension.
+struct ListingReadySheet: View {
+    let platform: Marketplace
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 24) {
+                // Success icon
+                ZStack {
+                    Circle()
+                        .fill(Color.green.opacity(0.12))
+                        .frame(width: 80, height: 80)
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 44))
+                        .foregroundStyle(.green)
+                }
+                .padding(.top, 16)
+
+                VStack(spacing: 10) {
+                    Text("Listing Ready")
+                        .font(.title2.bold())
+
+                    Text("Your \(platform.displayName) listing is saved and synced. Open the Collect extension in Chrome on your computer to review and publish it — title, description, price, and photos are already filled in.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+
+                // Reassurance row
+                HStack(spacing: 12) {
+                    Image(systemName: "puzzlepiece.extension.fill")
+                        .font(.title3)
+                        .foregroundStyle(.blue)
+                    Text("Make sure you're signed in to the extension with this same account.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(14)
+                .background(Color.blue.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+                .padding(.horizontal, 24)
+
+                Spacer()
+
+                Button("Done") { dismiss() }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 16)
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.medium])
     }
 }

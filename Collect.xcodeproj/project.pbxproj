@@ -31,6 +31,7 @@
 		A10022 /* CameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10022 /* CameraController.swift */; };
 		A10023 /* CameraPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10023 /* CameraPreview.swift */; };
 		A10024 /* VideoCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10024 /* VideoCaptureView.swift */; };
+		A10075 /* PhotoCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10075 /* PhotoCaptureView.swift */; };
 		A10025 /* ScanFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10025 /* ScanFlowView.swift */; };
 		A10026 /* AnalysisProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10026 /* AnalysisProgressView.swift */; };
 		A10027 /* ResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10027 /* ResultsView.swift */; };
@@ -90,6 +91,7 @@
 		B10022 /* CameraController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraController.swift; sourceTree = "<group>"; };
 		B10023 /* CameraPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreview.swift; sourceTree = "<group>"; };
 		B10024 /* VideoCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCaptureView.swift; sourceTree = "<group>"; };
+		B10075 /* PhotoCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoCaptureView.swift; sourceTree = "<group>"; };
 		B10025 /* ScanFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanFlowView.swift; sourceTree = "<group>"; };
 		B10026 /* AnalysisProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisProgressView.swift; sourceTree = "<group>"; };
 		B10027 /* ResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultsView.swift; sourceTree = "<group>"; };
@@ -280,6 +282,7 @@
 				B10022 /* CameraController.swift */,
 				B10023 /* CameraPreview.swift */,
 				B10024 /* VideoCaptureView.swift */,
+				B10075 /* PhotoCaptureView.swift */,
 				B10025 /* ScanFlowView.swift */,
 			);
 			path = Capture;
@@ -431,6 +434,7 @@
 				A10022 /* CameraController.swift in Sources */,
 				A10023 /* CameraPreview.swift in Sources */,
 				A10024 /* VideoCaptureView.swift in Sources */,
+				A10075 /* PhotoCaptureView.swift in Sources */,
 				A10025 /* ScanFlowView.swift in Sources */,
 				A10026 /* AnalysisProgressView.swift in Sources */,
 				A10027 /* ResultsView.swift in Sources */,
@@ -577,7 +581,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 16;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Collect: Stuff Scanner";
@@ -610,7 +614,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 16;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Collect: Stuff Scanner";

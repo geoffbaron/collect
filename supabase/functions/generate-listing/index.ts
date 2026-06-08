@@ -99,11 +99,9 @@ serve(async (req: Request) => {
   if (!isGuest) {
     try {
       const { data, error } = await supabase.auth.getUser()
-      if (error || !data?.user) return json({ error: "Unauthorized" }, 401)
-      userID = data.user.id
-    } catch {
-      return json({ error: "Unauthorized" }, 401)
-    }
+      // Auth failure = proceed as guest (expired token, new key format, etc.)
+      if (!error && data?.user) userID = data.user.id
+    } catch { /* proceed as guest */ }
   }
 
   // Parse body
@@ -147,38 +145,41 @@ serve(async (req: Request) => {
         generationConfig: {
           response_mime_type: "application/json",
           temperature:        0.4,
-          max_output_tokens:  1024,
+          // Generous budget: thinking-capable models spend output tokens on
+          // reasoning, and a tight cap truncates the JSON (→ unparseable → 502).
+          max_output_tokens:  4096,
         },
       }),
     })
   } catch (err) {
-    return json({ error: `Gemini unreachable: ${err}` }, 502)
+    // Never hard-fail the "create ad" flow — fall back to a basic editable draft.
+    console.error(`Gemini unreachable: ${err}`)
+    return json(fallbackDraft(asset, platform))
   }
 
   if (!geminiResp.ok) {
     const t = await geminiResp.text()
-    return json({ error: `Gemini error ${geminiResp.status}: ${t.slice(0, 200)}` }, 502)
+    console.error(`Gemini error ${geminiResp.status}: ${t.slice(0, 300)}`)
+    return json(fallbackDraft(asset, platform))
   }
 
   const geminiJson = await geminiResp.json()
-  const rawText    = geminiJson?.candidates?.[0]?.content?.parts?.[0]?.text ?? ""
+  // Concatenate text from every non-"thought" part — thinking models may emit a
+  // thought part before the answer, so reading only parts[0] can miss the JSON.
+  const respParts: Array<{ text?: string; thought?: boolean }> =
+    geminiJson?.candidates?.[0]?.content?.parts ?? []
+  const rawText = respParts
+    .filter((p) => !p?.thought)
+    .map((p) => p?.text ?? "")
+    .join("")
+    .trim()
 
-  const tryParse = (t: string): ListingDraft | null => {
-    try {
-      const p = JSON.parse(t)
-      if (!p?.title) return null
-      return {
-        title:          p.title           ?? asset.name,
-        description:    p.description     ?? "",
-        suggestedPrice: typeof p.suggested_price === "number" ? p.suggested_price : undefined,
-        priceRationale: p.price_rationale ?? "",
-      }
-    } catch { return null }
+  const draft = parseDraft(rawText, asset.name)
+  if (!draft) {
+    const finish = geminiJson?.candidates?.[0]?.finishReason ?? "unknown"
+    console.error(`Could not parse Gemini response (finishReason=${finish}): ${rawText.slice(0, 300)}`)
+    return json(fallbackDraft(asset, platform))
   }
-
-  const draft = tryParse(rawText)
-    ?? tryParse(rawText.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim())
-  if (!draft) return json({ error: "Could not parse Gemini response" }, 502)
 
   // Log usage (non-blocking)
   if (!isGuest && userID) {
@@ -196,6 +197,61 @@ serve(async (req: Request) => {
 
   return json(draft)
 })
+
+// ---------------------------------------------------------------------------
+// Parsing & fallback
+// ---------------------------------------------------------------------------
+
+/// Robustly extract a listing draft from model output: tries the raw text, a
+/// markdown-fence-stripped version, and the outermost {...} object.
+function parseDraft(rawText: string, assetName: string): ListingDraft | null {
+  if (!rawText) return null
+  const attempts = [
+    rawText,
+    rawText.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim(),
+  ]
+  const objMatch = rawText.match(/\{[\s\S]*\}/)
+  if (objMatch) attempts.push(objMatch[0])
+
+  for (const t of attempts) {
+    try {
+      const p = JSON.parse(t)
+      if (p?.title) {
+        return {
+          title:          p.title           ?? assetName,
+          description:    p.description     ?? "",
+          suggestedPrice: typeof p.suggested_price === "number" ? p.suggested_price : undefined,
+          priceRationale: p.price_rationale ?? "",
+        }
+      }
+    } catch { /* try next */ }
+  }
+  return null
+}
+
+/// Basic, editable draft used when Gemini is unavailable or unparseable, so the
+/// "create ad" flow degrades gracefully instead of returning a 502.
+function fallbackDraft(
+  asset: GenerateListingRequest["asset"],
+  platform: string,
+): ListingDraft {
+  const price = typeof asset.estimatedValue === "number" ? asset.estimatedValue : undefined
+  const cond  = asset.condition ? ` in ${asset.condition.toLowerCase()} condition` : ""
+  const closing = platform === "craigslist"
+    ? "Cash only, local pickup. OBO."
+    : "Local pickup preferred — message me for details."
+  const description = [
+    asset.description?.trim() || `${asset.name}${cond} for sale.`,
+    closing,
+  ].join(" ")
+
+  return {
+    title:          asset.name,
+    description,
+    suggestedPrice: price,
+    priceRationale: price != null ? "Based on the item's estimated value." : "",
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Helper

@@ -75,12 +75,22 @@ actor CloudRepository {
 
         if uploadPhotos {
             if let data = asset.photo1Data {
-                photo1Path = try? await uploadPhoto(
-                    data: data, assetID: asset.id, slot: 1, userID: userID)
+                do {
+                    photo1Path = try await uploadPhoto(
+                        data: data, assetID: asset.id, slot: 1, userID: userID)
+                    print("CloudRepository: ✓ photo1 uploaded → \(photo1Path!)")
+                } catch {
+                    print("CloudRepository: ✗ photo1 upload failed for \(asset.id): \(error)")
+                }
             }
             if let data = asset.photo2Data {
-                photo2Path = try? await uploadPhoto(
-                    data: data, assetID: asset.id, slot: 2, userID: userID)
+                do {
+                    photo2Path = try await uploadPhoto(
+                        data: data, assetID: asset.id, slot: 2, userID: userID)
+                    print("CloudRepository: ✓ photo2 uploaded → \(photo2Path!)")
+                } catch {
+                    print("CloudRepository: ✗ photo2 upload failed for \(asset.id): \(error)")
+                }
             }
         }
 
@@ -112,6 +122,7 @@ actor CloudRepository {
             soldPrice:        asset.soldPrice,
             soldPlatform:     asset.soldPlatform,
             soldAt:           asset.soldAt,
+            listingURL:       asset.listingURL,
             updatedAt:        Date()
         )
         // Preserve existing photo paths if we didn't upload new ones
@@ -152,7 +163,9 @@ actor CloudRepository {
     // MARK: - Photo upload
 
     func uploadPhoto(data: Data, assetID: UUID, slot: Int, userID: String) async throws -> String {
-        let path = "\(userID)/\(assetID.uuidString)/photo\(slot).jpg"
+        // Use lowercase UUIDs — PostgreSQL auth.uid()::text is lowercase, and
+        // storage RLS policies do a case-sensitive string comparison on path components.
+        let path = "\(userID.lowercased())/\(assetID.uuidString.lowercased())/photo\(slot).jpg"
         _ = try await db.storage
             .from(bucket)
             .upload(path, data: data, options: .init(contentType: "image/jpeg", upsert: true))
@@ -165,8 +178,8 @@ actor CloudRepository {
 
     func deletePhotos(assetID: UUID, userID: String) async throws {
         let paths = [
-            "\(userID)/\(assetID.uuidString)/photo1.jpg",
-            "\(userID)/\(assetID.uuidString)/photo2.jpg",
+            "\(userID.lowercased())/\(assetID.uuidString.lowercased())/photo1.jpg",
+            "\(userID.lowercased())/\(assetID.uuidString.lowercased())/photo2.jpg",
         ]
         _ = try await db.storage.from(bucket).remove(paths: paths)
     }

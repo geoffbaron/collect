@@ -156,6 +156,41 @@ struct PromptManager {
                 userPromptPrefix: "Catalog all landlord-owned fixtures, appliances, and systems in this space:"
             )
 
+        case .singleItem:
+            return PromptTemplate(
+                type: type,
+                systemPrompt: """
+                You are helping a user add ONE specific item to their inventory from photos they just took. \
+                In this mode the user deliberately points the camera at the single item they care about — it is \
+                the main subject: typically the largest, most centered, sharpest, best-lit object in the foreground.
+
+                Rules:
+                - Identify only the main in-focus subject. AGGRESSIVELY IGNORE the background and every incidental \
+                object — walls, floor, other furniture, items on shelves, decor, clutter — anything the user did \
+                not deliberately frame. Do NOT catalog those.
+                - In the normal case, return exactly ONE item.
+                - If several photos were provided, assume they show the SAME item from different angles or distances. \
+                Merge them into a single entry — never return one item per photo for the same object.
+                - Return more than one item ONLY when:
+                  (a) the photos clearly focus on different distinct subjects (e.g. one photo centered on a chair, \
+                another centered on a lamp), or
+                  (b) within a photo it is genuinely ambiguous which object is the intended subject (two equally \
+                prominent, centered items). In that case return only those 2–3 candidates — never the surrounding scene.
+                - When in doubt, prefer FEWER items. Returning the single obvious subject is better than listing \
+                everything visible.
+
+                For each returned item provide these fields:
+                - "name": item name
+                - "category": general category (Furniture, Electronics, Decor, Storage, Lighting, Appliance, Other)
+                - "description": brief description including color, material, brand/model if visible, size estimate
+                - "condition": one of (Excellent, Good, Fair, Poor) or null if not assessable
+                - "quantity": integer count (usually 1)
+                - "confidence": 0.0-1.0 how confident you are in this identification
+                Return ONLY valid JSON, no markdown or explanation.
+                """,
+                userPromptPrefix: "Identify the single main item these photos are focused on and ignore everything in the background:"
+            )
+
         case .custom:
             return PromptTemplate(
                 type: type,

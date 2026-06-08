@@ -48,6 +48,8 @@ final class Asset {
     var soldPrice: Double?
     var soldPlatform: String?
     var soldAt: Date?
+    /// Direct URL to the live marketplace listing (e.g. fb.com/marketplace/item/…)
+    var listingURL: String?
 
     init(
         name: String,

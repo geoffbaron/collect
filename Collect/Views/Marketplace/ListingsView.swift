@@ -7,7 +7,7 @@ struct ListingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var allAssets: [Asset]
 
-    @State private var filter: ListingStatus = .listed
+    @State private var filter: ListingStatus = .ready
     @State private var assetToSell: Asset?
     @State private var soldAsset: Asset?
 
@@ -36,7 +36,7 @@ struct ListingsView: View {
 
     private var activeTotalValue: Double {
         activeAssets
-            .filter { $0.listing == .listed || $0.listing == .pending }
+            .filter { $0.listing == .ready || $0.listing == .listed || $0.listing == .pending }
             .reduce(0) { $0 + ($1.askingPrice ?? $1.estimatedValue ?? 0) }
     }
 
@@ -98,7 +98,7 @@ struct ListingsView: View {
             // Filter tabs
             Section {
                 Picker("Filter", selection: $filter) {
-                    ForEach([ListingStatus.listed, .pending, .sold], id: \.self) { s in
+                    ForEach([ListingStatus.ready, .listed, .pending, .sold], id: \.self) { s in
                         Text(s.displayName).tag(s)
                     }
                 }
@@ -139,6 +139,13 @@ struct ListingsView: View {
                                     }
                                     .tint(.orange)
                                 }
+                                if asset.listing != .sold {
+                                    Button(role: .destructive) {
+                                        unlist(asset)
+                                    } label: {
+                                        Label("Unlist", systemImage: "xmark.bin")
+                                    }
+                                }
                             }
                             .swipeActions(edge: .leading) {
                                 Button {
@@ -164,7 +171,8 @@ struct ListingsView: View {
 
     private var emptyMessage: String {
         switch filter {
-        case .listed:   "Items you prepare listings for will appear here."
+        case .ready:    "Items you prepare listings for appear here, ready to publish from the Collect extension."
+        case .listed:   "Items you've published via the extension's Fill button show up here."
         case .pending:  "Mark items as Pending when a buyer says they're coming."
         case .sold:     "Mark items as Sold to track your earnings."
         case .notListed: ""
@@ -175,6 +183,17 @@ struct ListingsView: View {
 
     private func markPending(_ asset: Asset) {
         asset.listing = .pending
+        try? modelContext.save()
+        syncService.enqueue(.upsertAsset(id: asset.id))
+    }
+
+    /// Cancel/unlist — return the item to Not Listed and clear its platform flags
+    /// so it disappears from the active views and the extension.
+    private func unlist(_ asset: Asset) {
+        asset.listing          = .notListed
+        asset.listedFacebook   = false
+        asset.listedCraigslist = false
+        asset.listedAt         = nil
         try? modelContext.save()
         syncService.enqueue(.upsertAsset(id: asset.id))
     }
@@ -230,6 +249,15 @@ private struct ListingRow: View {
                         Text(at.formatted(.relative(presentation: .named)))
                             .font(.caption2)
                             .foregroundStyle(.secondary)
+                    }
+
+                    // Link to the live ad
+                    if let urlStr = asset.listingURL, let url = URL(string: urlStr) {
+                        Link(destination: url) {
+                            Label("View ad", systemImage: "arrow.up.right.square")
+                                .font(.caption2.weight(.medium))
+                                .foregroundStyle(.blue)
+                        }
                     }
                 }
             }

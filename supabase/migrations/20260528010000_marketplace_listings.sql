@@ -27,10 +27,12 @@ CREATE TABLE IF NOT EXISTS public.monthly_listings (
 
 ALTER TABLE public.monthly_listings ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "monthly_listings: owner access"
-  ON public.monthly_listings FOR ALL
-  USING  (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+DO $$ BEGIN
+  CREATE POLICY "monthly_listings: owner access"
+    ON public.monthly_listings FOR ALL
+    USING  (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 CREATE INDEX IF NOT EXISTS monthly_listings_user_idx
   ON public.monthly_listings (user_id, generated_at DESC);
