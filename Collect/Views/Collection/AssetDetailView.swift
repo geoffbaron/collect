@@ -3,12 +3,15 @@ import MapKit
 
 struct AssetDetailView: View {
     @Bindable var asset: Asset
+    @EnvironmentObject private var syncService: SyncService
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @State private var isEditing = false
     @State private var showDeleteConfirm = false
     @State private var selectedPhotoIndex = 0
     @State private var showPinDrop = false
+    @State private var showListingPrep = false
+    @State private var showMarkSold = false
 
     private var roomLayout: RoomLayout? {
         asset.collection?.room?.layoutData.flatMap { RoomLayout.from($0) }
@@ -161,6 +164,9 @@ struct AssetDetailView: View {
                 }
             }
 
+            // MARK: Sell section
+            sellSection
+
             Section {
                 Button(role: .destructive) {
                     showDeleteConfirm = true
@@ -175,6 +181,10 @@ struct AssetDetailView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button(isEditing ? "Done" : "Edit") {
+                    if isEditing {
+                        // Sync edits when user taps Done
+                        syncService.enqueue(.upsertAsset(id: asset.id))
+                    }
                     isEditing.toggle()
                 }
             }
@@ -197,12 +207,126 @@ struct AssetDetailView: View {
             titleVisibility: .visible
         ) {
             Button("Remove Item", role: .destructive) {
+                syncService.enqueue(.softDeleteAsset(id: asset.id))
                 modelContext.delete(asset)
                 dismiss()
             }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This item will be permanently removed from the scan.")
+        }
+        .sheet(isPresented: $showListingPrep) {
+            ListingPrepView(asset: asset)
+        }
+        .sheet(isPresented: $showMarkSold) {
+            MarkSoldSheet(asset: asset)
+        }
+    }
+
+    // MARK: - Sell section
+
+    @ViewBuilder
+    private var sellSection: some View {
+        switch asset.listing {
+        case .notListed:
+            Section("Sell") {
+                Button {
+                    showListingPrep = true
+                } label: {
+                    Label("Prepare Listing", systemImage: "storefront")
+                        .foregroundStyle(.blue)
+                }
+            }
+
+        case .listed, .pending:
+            Section("Sell") {
+                // Platforms
+                if !asset.listedMarketplaces.isEmpty {
+                    LabeledContent("Listed on") {
+                        Text(asset.listedMarketplaces.map(\.shortName).joined(separator: ", "))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                if let at = asset.listedAt {
+                    LabeledContent("Since") {
+                        Text(at.formatted(date: .abbreviated, time: .omitted))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                if let p = asset.askingPrice {
+                    LabeledContent("Asking") {
+                        Text(p, format: .currency(code: "USD"))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                // Status toggle: listed ↔ pending
+                HStack(spacing: 12) {
+                    Button {
+                        asset.listing = (asset.listing == .pending) ? .listed : .pending
+                        try? modelContext.save()
+                        syncService.enqueue(.upsertAsset(id: asset.id))
+                    } label: {
+                        Label(
+                            asset.listing == .pending ? "Listed" : "Mark Pending",
+                            systemImage: asset.listing == .pending ? "storefront" : "clock"
+                        )
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(asset.listing == .pending ? .blue : .orange)
+
+                    Button {
+                        showMarkSold = true
+                    } label: {
+                        Label("Mark Sold", systemImage: "checkmark.seal")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.green)
+                }
+                .padding(.top, 2)
+
+                Button {
+                    showListingPrep = true
+                } label: {
+                    Label("Edit Listing", systemImage: "pencil")
+                        .foregroundStyle(.secondary)
+                        .font(.subheadline)
+                }
+            }
+
+        case .sold:
+            Section("Sold") {
+                if let p = asset.soldPrice {
+                    LabeledContent("Sale Price") {
+                        Text(p, format: .currency(code: "USD"))
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.green)
+                    }
+                }
+                if let mp = asset.soldPlatform.flatMap({ Marketplace(rawValue: $0) }) {
+                    LabeledContent("Platform", value: mp.shortName)
+                }
+                if let at = asset.soldAt {
+                    LabeledContent("Date") {
+                        Text(at.formatted(date: .abbreviated, time: .omitted))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Button {
+                    asset.listing        = .notListed
+                    asset.soldPrice      = nil
+                    asset.soldPlatform   = nil
+                    asset.soldAt         = nil
+                    try? modelContext.save()
+                    syncService.enqueue(.upsertAsset(id: asset.id))
+                } label: {
+                    Text("List Again")
+                        .foregroundStyle(.secondary)
+                        .font(.subheadline)
+                }
+            }
         }
     }
 }

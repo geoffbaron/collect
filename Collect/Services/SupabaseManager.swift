@@ -13,6 +13,9 @@ final class SupabaseManager {
     // The base URL of your Supabase project — also used to build Edge Function URLs.
     static let projectURL = Secrets.supabaseURL
 
+    // Exposed so AIService can use it as a fallback bearer token for guest scans.
+    static let anonKey = Secrets.supabaseAnonKey
+
     private init() {
         client = SupabaseClient(
             supabaseURL: URL(string: Secrets.supabaseURL)!,

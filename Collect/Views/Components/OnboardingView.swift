@@ -101,15 +101,7 @@ struct OnboardingView: View {
     }
 
     private func saveAndContinue() {
-        let trimmed = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-        isSaving = true
-        Task {
-            await AIService.shared.setAPIKey(trimmed)
-            await MainActor.run {
-                isSaving = false
-                isPresented = false
-            }
-        }
+        // API key is now managed server-side — nothing to store locally.
+        isPresented = false
     }
 }

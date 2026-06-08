@@ -5,6 +5,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var authService: AuthService
+    @EnvironmentObject private var syncService: SyncService
     @State private var showDeleteConfirmation = false
     @State private var showSignOutConfirmation = false
 
@@ -44,6 +45,32 @@ struct SettingsView: View {
                     }
                 } footer: {
                     Text("Deletes your account and all data on this device permanently.")
+                }
+
+                // MARK: Cloud sync status
+                if !authService.isGuest {
+                    Section("Cloud Sync") {
+                        switch syncService.syncState {
+                        case .idle:
+                            Label("Up to date", systemImage: "checkmark.icloud")
+                                .foregroundStyle(.secondary)
+                        case .syncing:
+                            HStack(spacing: 10) {
+                                ProgressView().controlSize(.small)
+                                Text("Syncing…").foregroundStyle(.secondary)
+                            }
+                        case .error(let msg):
+                            VStack(alignment: .leading, spacing: 4) {
+                                Label("Sync issue", systemImage: "exclamationmark.icloud")
+                                    .foregroundStyle(.orange)
+                                Text(msg)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        Button("Sync Now") { syncService.forceDrain() }
+                            .disabled(syncService.syncState == .syncing)
+                    }
                 }
 
                 // MARK: About

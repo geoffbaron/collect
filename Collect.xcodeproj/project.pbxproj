@@ -52,6 +52,16 @@
 		A10062 /* FeaturesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10062 /* FeaturesService.swift */; };
 		A10063 /* LimitsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10063 /* LimitsService.swift */; };
 		A10064 /* UsageLimits.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10064 /* UsageLimits.swift */; };
+		A10065 /* GroupReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10065 /* GroupReviewView.swift */; };
+		A10066 /* SyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10066 /* SyncService.swift */; };
+		A10067 /* CloudRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10067 /* CloudRepository.swift */; };
+		A10068 /* SyncDTOs.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10068 /* SyncDTOs.swift */; };
+		A10069 /* MigrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10069 /* MigrationService.swift */; };
+		A10070 /* RestoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10070 /* RestoreService.swift */; };
+		A10071 /* Marketplace.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10071 /* Marketplace.swift */; };
+		A10072 /* ListingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10072 /* ListingService.swift */; };
+		A10073 /* ListingPrepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10073 /* ListingPrepView.swift */; };
+		A10074 /* ListingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10074 /* ListingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -100,6 +110,16 @@
 		B10062 /* FeaturesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeaturesService.swift; sourceTree = "<group>"; };
 		B10063 /* LimitsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitsService.swift; sourceTree = "<group>"; };
 		B10064 /* UsageLimits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageLimits.swift; sourceTree = "<group>"; };
+		B10065 /* GroupReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupReviewView.swift; sourceTree = "<group>"; };
+		B10066 /* SyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncService.swift; sourceTree = "<group>"; };
+		B10067 /* CloudRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudRepository.swift; sourceTree = "<group>"; };
+		B10068 /* SyncDTOs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncDTOs.swift; sourceTree = "<group>"; };
+		B10069 /* MigrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationService.swift; sourceTree = "<group>"; };
+		B10070 /* RestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestoreService.swift; sourceTree = "<group>"; };
+		B10071 /* Marketplace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Marketplace.swift; sourceTree = "<group>"; };
+		B10072 /* ListingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListingService.swift; sourceTree = "<group>"; };
+		B10073 /* ListingPrepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListingPrepView.swift; sourceTree = "<group>"; };
+		B10074 /* ListingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -149,6 +169,7 @@
 				B10008 /* PromptType.swift */,
 				B10050 /* RoomLayout.swift */,
 				B10064 /* UsageLimits.swift */,
+				B10071 /* Marketplace.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -163,6 +184,12 @@
 				B10060 /* SupabaseManager.swift */,
 				B10062 /* FeaturesService.swift */,
 				B10063 /* LimitsService.swift */,
+				B10066 /* SyncService.swift */,
+				B10067 /* CloudRepository.swift */,
+				B10068 /* SyncDTOs.swift */,
+				B10069 /* MigrationService.swift */,
+				B10070 /* RestoreService.swift */,
+				B10072 /* ListingService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -177,6 +204,7 @@
 				D10014 /* Analysis */,
 				D10015 /* Collection */,
 				D10016 /* Components */,
+				D10017 /* Marketplace */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -262,6 +290,7 @@
 			children = (
 				B10026 /* AnalysisProgressView.swift */,
 				B10027 /* ResultsView.swift */,
+				B10065 /* GroupReviewView.swift */,
 			);
 			path = Analysis;
 			sourceTree = "<group>";
@@ -283,6 +312,15 @@
 				B10033 /* OnboardingView.swift */,
 			);
 			path = Components;
+			sourceTree = "<group>";
+		};
+		D10017 /* Marketplace */ = {
+			isa = PBXGroup;
+			children = (
+				B10073 /* ListingPrepView.swift */,
+				B10074 /* ListingsView.swift */,
+			);
+			path = Marketplace;
 			sourceTree = "<group>";
 		};
 		D10099 /* Products */ = {
@@ -411,6 +449,16 @@
 				A10062 /* FeaturesService.swift in Sources */,
 				A10063 /* LimitsService.swift in Sources */,
 				A10064 /* UsageLimits.swift in Sources */,
+				A10065 /* GroupReviewView.swift in Sources */,
+				A10066 /* SyncService.swift in Sources */,
+				A10067 /* CloudRepository.swift in Sources */,
+				A10068 /* SyncDTOs.swift in Sources */,
+				A10069 /* MigrationService.swift in Sources */,
+				A10070 /* RestoreService.swift in Sources */,
+				A10071 /* Marketplace.swift in Sources */,
+				A10072 /* ListingService.swift in Sources */,
+				A10073 /* ListingPrepView.swift in Sources */,
+				A10074 /* ListingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -529,7 +577,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Collect: Stuff Scanner";
@@ -537,6 +585,7 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "Collect needs camera access to record room videos for asset collection.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Collect uses your location to tag where each asset is found, so you can map them later.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Collect needs microphone access for video recording.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Collect saves your asset photos to Photos so you can attach them to marketplace listings.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -561,7 +610,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Collect: Stuff Scanner";
@@ -569,6 +618,7 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "Collect needs camera access to record room videos for asset collection.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Collect uses your location to tag where each asset is found, so you can map them later.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Collect needs microphone access for video recording.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Collect saves your asset photos to Photos so you can attach them to marketplace listings.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

@@ -1,15 +1,21 @@
 import SwiftUI
 import SwiftData
+import ARKit
 
 struct RoomDetailView: View {
     @Bindable var room: Room
     @EnvironmentObject private var featuresService: FeaturesService
     @EnvironmentObject private var limitsService: LimitsService
+    @EnvironmentObject private var syncService: SyncService
     @Environment(\.modelContext) private var modelContext
     @State private var showScan = false
     @State private var showRoomScan = false
     @State private var showFloorPlan = false
     @Query private var allCollections: [Collection]
+
+    private var lidarAvailable: Bool {
+        ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh)
+    }
 
     // Filter to only this room's collections, sorted newest first
     private var collections: [Collection] {
@@ -33,7 +39,7 @@ struct RoomDetailView: View {
                     }
                     .buttonStyle(.borderedProminent)
 
-                    if featuresService.floorScansEnabled {
+                    if lidarAvailable {
                         Button {
                             showRoomScan = true
                         } label: {
@@ -45,7 +51,7 @@ struct RoomDetailView: View {
             } else {
                 List {
                     // Layout section (floor_scans flag)
-                    if featuresService.floorScansEnabled {
+                    if lidarAvailable {
                         Section {
                             if room.hasLayout, let data = room.layoutData, let layout = RoomLayout.from(data) {
                                 let roomAssets = collections.flatMap { $0.assets }
@@ -138,9 +144,11 @@ struct RoomDetailView: View {
             ScanFlowView(room: room, isPresented: $showScan)
         }
         .sheet(isPresented: $showRoomScan) {
-            if featuresService.floorScansEnabled {
+            if lidarAvailable {
                 RoomScanSheet(roomName: room.name) { layout in
                     room.layoutData = layout.toData()
+                    // Room metadata (map position) syncs; layout binary stays local-only
+                    syncService.enqueue(.upsertRoom(id: room.id))
                 }
             }
         }
@@ -148,7 +156,9 @@ struct RoomDetailView: View {
 
     private func deleteCollections(at offsets: IndexSet) {
         for index in offsets {
-            modelContext.delete(collections[index])
+            let collection = collections[index]
+            syncService.enqueue(.softDeleteCollection(id: collection.id))
+            modelContext.delete(collection)
         }
     }
 }

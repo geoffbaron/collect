@@ -35,6 +35,20 @@ final class Asset {
     var collection: Collection?
     var isConfirmed: Bool
 
+    // MARK: - Marketplace listing
+
+    /// Raw value of ListingStatus enum (SwiftData stores strings)
+    var listingStatus: String = ListingStatus.notListed.rawValue
+    var listingTitle: String?
+    var listingDescription: String?
+    var askingPrice: Double?
+    var listedFacebook: Bool   = false
+    var listedCraigslist: Bool = false
+    var listedAt: Date?
+    var soldPrice: Double?
+    var soldPlatform: String?
+    var soldAt: Date?
+
     init(
         name: String,
         category: String,
@@ -66,4 +80,20 @@ final class Asset {
     var hasPinnedPosition: Bool {
         layoutX != nil && layoutZ != nil
     }
+
+    // MARK: - Listing helpers
+
+    var listing: ListingStatus {
+        get { ListingStatus(rawValue: listingStatus) ?? .notListed }
+        set { listingStatus = newValue.rawValue }
+    }
+
+    var listedMarketplaces: [Marketplace] {
+        var result: [Marketplace] = []
+        if listedFacebook   { result.append(.facebook) }
+        if listedCraigslist { result.append(.craigslist) }
+        return result
+    }
+
+    var isListed: Bool { listing != .notListed }
 }

@@ -4,6 +4,7 @@ import SwiftData
 struct PropertyListView: View {
     @EnvironmentObject private var authService: AuthService
     @EnvironmentObject private var limitsService: LimitsService
+    @EnvironmentObject private var syncService: SyncService
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Property.updatedAt, order: .reverse) private var properties: [Property]
     @State private var showAddProperty = false
@@ -11,6 +12,7 @@ struct PropertyListView: View {
     @State private var newPropertyAddress = ""
     @State private var showSettings = false
     @State private var showLimitAlert = false
+    @State private var showListings = false
 
     private var atPropertyLimit: Bool {
         let max = limitsService.limits.maxProperties
@@ -40,6 +42,14 @@ struct PropertyListView: View {
                     }
                 }
 
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showListings = true
+                    } label: {
+                        Image(systemName: "storefront")
+                    }
+                }
+
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         if atPropertyLimit { showLimitAlert = true }
@@ -51,6 +61,9 @@ struct PropertyListView: View {
             }
             .sheet(isPresented: $showSettings) {
                 SettingsView()
+            }
+            .sheet(isPresented: $showListings) {
+                ListingsView()
             }
             .alert("Property limit reached", isPresented: $showLimitAlert) {
                 Button("OK", role: .cancel) {}
@@ -96,7 +109,7 @@ struct PropertyListView: View {
                 else               { showAddProperty = true }
             } label: {
                 Label("Add Property", systemImage: atPropertyLimit ? "lock.circle" : "plus.circle")
-                    .foregroundStyle(atPropertyLimit ? .secondary : .blue)
+                    .foregroundStyle(atPropertyLimit ? Color(uiColor: .secondaryLabel) : .blue)
             }
         }
         .navigationDestination(for: Property.self) { property in
@@ -114,12 +127,15 @@ struct PropertyListView: View {
         guard !newPropertyName.isEmpty, let userID = authService.currentUserID else { return }
         let property = Property(name: newPropertyName, address: newPropertyAddress, ownerID: userID)
         modelContext.insert(property)
+        syncService.enqueue(.upsertProperty(id: property.id))
         resetForm()
     }
 
     private func deleteProperties(at offsets: IndexSet) {
         for index in offsets {
-            modelContext.delete(userProperties[index])
+            let property = userProperties[index]
+            syncService.enqueue(.softDeleteProperty(id: property.id))
+            modelContext.delete(property)
         }
     }
 
