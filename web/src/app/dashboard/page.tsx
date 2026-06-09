@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAssetsWithLocation, getProperties } from "@/lib/data";
+import { getAccount, getAssetsWithLocation, getProperties } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
@@ -7,7 +7,12 @@ const fmt = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
 export default async function DashboardPage() {
-  const [assets, properties] = await Promise.all([getAssetsWithLocation(), getProperties()]);
+  const [assets, properties, account] = await Promise.all([
+    getAssetsWithLocation(),
+    getProperties(),
+    getAccount(),
+  ]);
+  const isPM = account?.product_mode === "property_manager";
 
   const totalValue = assets.reduce((s, a) => s + (a.estimated_value ?? 0) * (a.quantity ?? 1), 0);
   const activeListings = assets.filter(
@@ -15,6 +20,7 @@ export default async function DashboardPage() {
   ).length;
   const sold = assets.filter((a) => a.listing_status === "sold");
   const soldValue = sold.reduce((s, a) => s + (a.sold_price ?? 0), 0);
+  const confirmed = assets.filter((a) => a.is_confirmed).length;
 
   // Group item counts per property name for the property list.
   const countByProperty = new Map<string, number>();
@@ -23,22 +29,35 @@ export default async function DashboardPage() {
     countByProperty.set(key, (countByProperty.get(key) ?? 0) + 1);
   }
 
-  const stats = [
-    { label: "Items", value: assets.length.toLocaleString() },
-    { label: "Estimated value", value: fmt(totalValue) },
-    { label: "Active listings", value: activeListings.toLocaleString() },
-    { label: "Sold", value: `${sold.length} · ${fmt(soldValue)}` },
-  ];
+  // Property managers care about coverage across the portfolio; homeowners
+  // about resale. Same underlying data, different lens.
+  const stats = isPM
+    ? [
+        { label: "Items", value: assets.length.toLocaleString() },
+        { label: "Estimated value", value: fmt(totalValue) },
+        { label: "Properties", value: properties.length.toLocaleString() },
+        { label: "Confirmed", value: confirmed.toLocaleString() },
+      ]
+    : [
+        { label: "Items", value: assets.length.toLocaleString() },
+        { label: "Estimated value", value: fmt(totalValue) },
+        { label: "Active listings", value: activeListings.toLocaleString() },
+        { label: "Sold", value: `${sold.length} · ${fmt(soldValue)}` },
+      ];
 
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Overview</h1>
-          <p className="text-slate-500">Everything you&apos;ve collected, at a glance.</p>
+          <h1 className="text-2xl font-bold text-slate-900">{isPM ? "Portfolio" : "Overview"}</h1>
+          <p className="text-slate-500">
+            {isPM
+              ? "Your properties and everything in them, at a glance."
+              : "Everything you've collected, at a glance."}
+          </p>
         </div>
         <Link href="/dashboard/items" className="btn-primary">
-          Manage items
+          {isPM ? "Manage inventory" : "Manage items"}
         </Link>
       </div>
 
