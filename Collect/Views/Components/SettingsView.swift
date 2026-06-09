@@ -6,6 +6,7 @@ struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var authService: AuthService
     @EnvironmentObject private var syncService: SyncService
+    @EnvironmentObject private var accountService: AccountService
     @State private var showDeleteConfirmation = false
     @State private var showSignOutConfirmation = false
 
@@ -24,6 +25,24 @@ struct SettingsView: View {
                         Text("You're in guest mode — create an account to save your data across devices.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                    }
+                }
+
+                // MARK: Product mode (account-wide; not available to guests)
+                if !authService.isGuest {
+                    Section {
+                        Picker("Product", selection: Binding(
+                            get: { accountService.productMode },
+                            set: { newMode in Task { await accountService.setProductMode(newMode) } }
+                        )) {
+                            ForEach(ProductMode.allCases, id: \.self) { mode in
+                                Text(mode.displayName).tag(mode)
+                            }
+                        }
+                    } header: {
+                        Text("Product")
+                    } footer: {
+                        Text("Switch between cataloging your own home and managing properties.")
                     }
                 }
 
