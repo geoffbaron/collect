@@ -59,9 +59,78 @@ export type Room = {
   id: string;
   account_id: string;
   user_id: string;
-  floor_id: string;
+  floor_id: string | null;
+  unit_id: string | null;
+  common_area_id: string | null;
   name: string;
   deleted_at: string | null;
+};
+
+// ── Multifamily model (Phase 2) ─────────────────────────────
+
+export type LeaseStatus = "vacant" | "occupied" | "notice" | "eviction";
+export type TurnStatus = "clean" | "needs_turn" | "in_progress" | "turned";
+export type AreaType = "lobby" | "gym" | "pool" | "hallway" | "laundry" | "parking" | "office" | "other";
+
+export type Building = {
+  id: string;
+  account_id: string;
+  property_id: string;
+  name: string;
+  address: string;
+  floor_count: number | null;
+  year_built: number | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
+export type Unit = {
+  id: string;
+  account_id: string;
+  property_id: string;
+  building_id: string | null;
+  unit_number: string;
+  floor_number: number | null;
+  sqft: number | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  lease_status: LeaseStatus;
+  turn_status: TurnStatus;
+  current_tenant_name: string | null;
+  lease_start: string | null;
+  lease_end: string | null;
+  monthly_rent: number | null;
+  notes: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
+export type CommonArea = {
+  id: string;
+  account_id: string;
+  property_id: string;
+  building_id: string | null;
+  name: string;
+  area_type: AreaType;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
+export const LEASE_STATUS_LABELS: Record<LeaseStatus, string> = {
+  vacant: "Vacant",
+  occupied: "Occupied",
+  notice: "Notice",
+  eviction: "Eviction",
+};
+
+export const TURN_STATUS_LABELS: Record<TurnStatus, string> = {
+  clean: "Clean",
+  needs_turn: "Needs Turn",
+  in_progress: "In Progress",
+  turned: "Turned",
 };
 
 export type Collection = {

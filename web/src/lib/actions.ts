@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import type { ProductMode } from "@/lib/types";
+import type { LeaseStatus, ProductMode, TurnStatus } from "@/lib/types";
 
 /**
  * Switches the signed-in account between the homeowner and property-manager
@@ -78,6 +78,111 @@ export async function deleteAsset(id: string) {
   revalidatePath("/dashboard/items");
   revalidatePath("/dashboard/listings");
   return { ok: !error, error: error?.message };
+}
+
+// ── Multifamily CRUD ─────────────────────────────────────────
+
+export async function createBuilding(propertyId: string, name: string, address = "") {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("buildings")
+    .insert({ property_id: propertyId, name: name.trim(), address: address.trim() })
+    .select()
+    .single();
+  if (error) return { ok: false, error: error.message, building: null };
+  revalidatePath(`/dashboard/portfolio/${propertyId}`);
+  return { ok: true, error: null, building: data };
+}
+
+export async function createUnit(input: {
+  propertyId: string;
+  buildingId: string;
+  unitNumber: string;
+  floorNumber?: number | null;
+  sqft?: number | null;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+}) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("units")
+    .insert({
+      property_id: input.propertyId,
+      building_id: input.buildingId,
+      unit_number: input.unitNumber.trim(),
+      floor_number: input.floorNumber ?? null,
+      sqft: input.sqft ?? null,
+      bedrooms: input.bedrooms ?? null,
+      bathrooms: input.bathrooms ?? null,
+    })
+    .select()
+    .single();
+  if (error) return { ok: false, error: error.message, unit: null };
+  revalidatePath(`/dashboard/portfolio/${input.propertyId}/${input.buildingId}`);
+  return { ok: true, error: null, unit: data };
+}
+
+export async function updateUnitStatus(
+  id: string,
+  propertyId: string,
+  buildingId: string,
+  patch: { lease_status?: LeaseStatus; turn_status?: TurnStatus }
+) {
+  const supabase = createClient();
+  const { error } = await supabase.from("units").update(patch).eq("id", id);
+  revalidatePath(`/dashboard/portfolio/${propertyId}/${buildingId}`);
+  return { ok: !error, error: error?.message };
+}
+
+/**
+ * Bulk-creates units from a CSV string with columns:
+ * unit_number, floor_number, bedrooms, bathrooms, sqft
+ * (header row required; extra columns ignored)
+ */
+export async function importUnitsFromCsv(
+  propertyId: string,
+  buildingId: string,
+  csvText: string
+) {
+  const lines = csvText.trim().split(/\r?\n/);
+  if (lines.length < 2) return { ok: false, error: "CSV must have a header row and at least one data row.", count: 0 };
+
+  const header = lines[0].split(",").map((h) => h.trim().toLowerCase());
+  const col = (name: string) => header.indexOf(name);
+
+  if (col("unit_number") === -1) {
+    return { ok: false, error: "CSV must have a 'unit_number' column.", count: 0 };
+  }
+
+  const rows = lines.slice(1).map((line) => {
+    const cells = line.split(",").map((c) => c.trim());
+    const get = (name: string) => {
+      const i = col(name);
+      return i >= 0 ? (cells[i] ?? "") : "";
+    };
+    const num = (name: string) => {
+      const v = parseFloat(get(name));
+      return isNaN(v) ? null : v;
+    };
+    return {
+      property_id: propertyId,
+      building_id: buildingId,
+      unit_number: get("unit_number"),
+      floor_number: num("floor_number") != null ? Math.round(num("floor_number")!) : null,
+      bedrooms: num("bedrooms"),
+      bathrooms: num("bathrooms"),
+      sqft: num("sqft") != null ? Math.round(num("sqft")!) : null,
+    };
+  }).filter((r) => r.unit_number.length > 0);
+
+  if (rows.length === 0) return { ok: false, error: "No valid rows found in CSV.", count: 0 };
+
+  const supabase = createClient();
+  const { error } = await supabase.from("units").insert(rows);
+  if (error) return { ok: false, error: error.message, count: 0 };
+
+  revalidatePath(`/dashboard/portfolio/${propertyId}/${buildingId}`);
+  return { ok: true, error: null, count: rows.length };
 }
 
 type Backup = {

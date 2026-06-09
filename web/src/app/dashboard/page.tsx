@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAccount, getAssetsWithLocation, getProperties } from "@/lib/data";
+import { getAccount, getAssetsWithLocation, getBuildings, getProperties } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +14,12 @@ export default async function DashboardPage() {
   ]);
   const isPM = account?.product_mode === "property_manager";
 
+  // For PM mode, fetch building counts per property in parallel
+  const buildingCountMap = new Map<string, number>();
+  if (isPM && properties.length > 0) {
+    const buildingArrays = await Promise.all(properties.map((p) => getBuildings(p.id)));
+    properties.forEach((p, i) => buildingCountMap.set(p.id, buildingArrays[i].length));
+  }
   const totalValue = assets.reduce((s, a) => s + (a.estimated_value ?? 0) * (a.quantity ?? 1), 0);
   const activeListings = assets.filter(
     (a) => a.listing_status === "ready" || a.listing_status === "listed" || a.listing_status === "pending"
@@ -96,11 +102,28 @@ export default async function DashboardPage() {
             )}
             {properties.map((p) => (
               <li key={p.id} className="flex items-center justify-between px-5 py-4">
-                <div>
-                  <div className="font-medium text-slate-900">{p.name}</div>
-                  {p.address && <div className="text-sm text-slate-500">{p.address}</div>}
-                </div>
-                <div className="text-sm text-slate-500">{countByProperty.get(p.name) ?? 0} items</div>
+                {isPM ? (
+                  <Link
+                    href={`/dashboard/portfolio/${p.id}`}
+                    className="flex w-full items-center justify-between hover:opacity-75"
+                  >
+                    <div>
+                      <div className="font-medium text-slate-900">{p.name}</div>
+                      {p.address && <div className="text-sm text-slate-500">{p.address}</div>}
+                    </div>
+                    <div className="text-right text-sm text-slate-500">
+                      {buildingCountMap.get(p.id) ?? 0} building{buildingCountMap.get(p.id) !== 1 ? "s" : ""}
+                    </div>
+                  </Link>
+                ) : (
+                  <>
+                    <div>
+                      <div className="font-medium text-slate-900">{p.name}</div>
+                      {p.address && <div className="text-sm text-slate-500">{p.address}</div>}
+                    </div>
+                    <div className="text-sm text-slate-500">{countByProperty.get(p.name) ?? 0} items</div>
+                  </>
+                )}
               </li>
             ))}
           </ul>
