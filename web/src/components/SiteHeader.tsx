@@ -8,7 +8,16 @@ export function SiteHeader({ signedIn }: { signedIn?: boolean }) {
           <span className="grid h-7 w-7 place-items-center rounded-lg bg-brand text-white">C</span>
           Collect
         </Link>
-        <nav className="flex items-center gap-2 text-sm">
+        <nav className="flex items-center gap-1 text-sm">
+          <Link href="/homeowners" className="hidden px-3 py-2 text-slate-600 hover:text-slate-900 md:block">
+            For Home
+          </Link>
+          <Link href="/property-management" className="hidden px-3 py-2 text-slate-600 hover:text-slate-900 md:block">
+            For Property Managers
+          </Link>
+          <Link href="/pricing" className="hidden px-3 py-2 text-slate-600 hover:text-slate-900 sm:block">
+            Pricing
+          </Link>
           <Link href="/download" className="hidden px-3 py-2 text-slate-600 hover:text-slate-900 sm:block">
             Download
           </Link>
