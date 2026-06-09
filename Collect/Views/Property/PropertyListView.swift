@@ -130,7 +130,11 @@ struct PropertyListView: View {
             }
         }
         .navigationDestination(for: Property.self) { property in
-            PropertyDetailView(property: property)
+            if accountService.isPropertyManager {
+                PMPropertyDetailView(property: property)
+            } else {
+                PropertyDetailView(property: property)
+            }
         }
         .navigationDestination(for: Collection.self) { collection in
             CollectionDetailView(collection: collection)

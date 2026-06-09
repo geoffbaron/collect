@@ -10,6 +10,9 @@ final class Room {
     @Relationship(deleteRule: .cascade, inverse: \Collection.room)
     var collections: [Collection]
 
+    /// Set when the room belongs to a PM unit instead of a homeowner floor.
+    var unitID: UUID?
+
     @Attribute(.externalStorage)
     var layoutData: Data?
 

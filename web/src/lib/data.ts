@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Account, AssetWithLocation, Property } from "@/lib/types";
+import type { Account, AssetWithLocation, Building, CommonArea, Property, Unit } from "@/lib/types";
 
 export async function getUser() {
   const supabase = createClient();
@@ -93,4 +93,61 @@ export async function getAssetsWithLocation(): Promise<AssetWithLocation[]> {
   }
 
   return assets;
+}
+
+export async function getBuildings(propertyId: string): Promise<Building[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("buildings")
+    .select("*")
+    .eq("property_id", propertyId)
+    .is("deleted_at", null)
+    .order("name");
+  return (data ?? []) as Building[];
+}
+
+export async function getUnits(opts: {
+  propertyId?: string;
+  buildingId?: string;
+}): Promise<Unit[]> {
+  const supabase = createClient();
+  let query = supabase
+    .from("units")
+    .select("*")
+    .is("deleted_at", null)
+    .order("unit_number");
+  if (opts.buildingId) query = query.eq("building_id", opts.buildingId);
+  else if (opts.propertyId) query = query.eq("property_id", opts.propertyId);
+  const { data } = await query;
+  return (data ?? []) as Unit[];
+}
+
+export async function getCommonAreas(propertyId: string): Promise<CommonArea[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("common_areas")
+    .select("*")
+    .eq("property_id", propertyId)
+    .is("deleted_at", null)
+    .order("name");
+  return (data ?? []) as CommonArea[];
+}
+
+/** Vacancy summary for a property's units (for the PM portfolio dashboard). */
+export async function getPropertyVacancySummary(
+  propertyId: string
+): Promise<{ total: number; vacant: number; occupied: number; notice: number }> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("units")
+    .select("lease_status")
+    .eq("property_id", propertyId)
+    .is("deleted_at", null);
+  const rows = data ?? [];
+  return {
+    total: rows.length,
+    vacant: rows.filter((r: any) => r.lease_status === "vacant").length,
+    occupied: rows.filter((r: any) => r.lease_status === "occupied").length,
+    notice: rows.filter((r: any) => r.lease_status === "notice").length,
+  };
 }
