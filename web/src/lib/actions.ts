@@ -360,3 +360,228 @@ export async function importBackup(jsonText: string) {
     },
   };
 }
+
+// ── CSV item import ──────────────────────────────────────────
+
+const VALID_LISTING_STATUSES = ["not_listed", "prepped", "listed", "sold"];
+
+export type ImportCsvRow = {
+  property: string;
+  floor: string;
+  room: string;
+  name: string;
+  category: string;
+  description: string;
+  condition: string;
+  quantity: string;
+  estimated_value: string;
+  listing_status: string;
+  asking_price: string;
+};
+
+/**
+ * Imports items from a CSV (after the user has mapped columns to fields in the
+ * import wizard). Properties, floors, and rooms are matched by name (case-
+ * insensitive) within the signed-in account and created if they don't exist
+ * yet, so re-running an import with the same property/room names adds items
+ * to the existing hierarchy instead of duplicating it.
+ */
+export async function importItemsFromCsv(rows: ImportCsvRow[]) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Not signed in.", counts: null };
+
+  const usable = rows.filter((r) => r.name?.trim());
+  if (usable.length === 0) {
+    return { ok: false, error: "No rows with an item name to import.", counts: null };
+  }
+
+  const now = new Date().toISOString();
+  const norm = (s: string) => s.trim().toLowerCase();
+
+  // ── Properties ──
+  const { data: existingProperties } = await supabase
+    .from("properties")
+    .select("id, name")
+    .is("deleted_at", null);
+  const propertyIdByName = new Map<string, string>(
+    (existingProperties ?? []).map((p) => [norm(p.name), p.id])
+  );
+
+  const newPropertyNames = new Set<string>();
+  for (const r of usable) {
+    const name = r.property.trim() || "Imported Items";
+    if (!propertyIdByName.has(norm(name))) newPropertyNames.add(name);
+  }
+  if (newPropertyNames.size > 0) {
+    const inserted = await supabase
+      .from("properties")
+      .insert(
+        Array.from(newPropertyNames).map((name) => ({
+          user_id: user.id,
+          name,
+          address: "",
+          created_at: now,
+          updated_at: now,
+        }))
+      )
+      .select("id, name");
+    if (inserted.error) return { ok: false, error: `Failed creating properties: ${inserted.error.message}`, counts: null };
+    for (const p of inserted.data ?? []) propertyIdByName.set(norm(p.name), p.id);
+  }
+
+  // ── Floors ──
+  const { data: existingFloors } = await supabase
+    .from("floors")
+    .select("id, name, property_id")
+    .is("deleted_at", null);
+  const floorIdByKey = new Map<string, string>(
+    (existingFloors ?? []).map((f) => [`${f.property_id}|${norm(f.name)}`, f.id])
+  );
+
+  const newFloors = new Map<string, { property_id: string; name: string }>();
+  for (const r of usable) {
+    const propertyName = r.property.trim() || "Imported Items";
+    const propertyId = propertyIdByName.get(norm(propertyName))!;
+    const floorName = r.floor.trim() || "Main Floor";
+    const key = `${propertyId}|${norm(floorName)}`;
+    if (!floorIdByKey.has(key)) newFloors.set(key, { property_id: propertyId, name: floorName });
+  }
+  if (newFloors.size > 0) {
+    const inserted = await supabase
+      .from("floors")
+      .insert(
+        Array.from(newFloors.values()).map((f) => ({
+          user_id: user.id,
+          property_id: f.property_id,
+          name: f.name,
+          sort_order: 0,
+          created_at: now,
+          updated_at: now,
+        }))
+      )
+      .select("id, name, property_id");
+    if (inserted.error) return { ok: false, error: `Failed creating floors: ${inserted.error.message}`, counts: null };
+    for (const f of inserted.data ?? []) floorIdByKey.set(`${f.property_id}|${norm(f.name)}`, f.id);
+  }
+
+  // ── Rooms ──
+  const { data: existingRooms } = await supabase
+    .from("rooms")
+    .select("id, name, floor_id")
+    .is("deleted_at", null);
+  const roomIdByKey = new Map<string, string>(
+    (existingRooms ?? []).map((r) => [`${r.floor_id}|${norm(r.name)}`, r.id])
+  );
+
+  const newRooms = new Map<string, { floor_id: string; name: string }>();
+  for (const r of usable) {
+    const propertyName = r.property.trim() || "Imported Items";
+    const propertyId = propertyIdByName.get(norm(propertyName))!;
+    const floorName = r.floor.trim() || "Main Floor";
+    const floorId = floorIdByKey.get(`${propertyId}|${norm(floorName)}`)!;
+    const roomName = r.room.trim() || "Imported";
+    const key = `${floorId}|${norm(roomName)}`;
+    if (!roomIdByKey.has(key)) newRooms.set(key, { floor_id: floorId, name: roomName });
+  }
+  if (newRooms.size > 0) {
+    const inserted = await supabase
+      .from("rooms")
+      .insert(
+        Array.from(newRooms.values()).map((r) => ({
+          user_id: user.id,
+          floor_id: r.floor_id,
+          name: r.name,
+          created_at: now,
+          updated_at: now,
+        }))
+      )
+      .select("id, name, floor_id");
+    if (inserted.error) return { ok: false, error: `Failed creating rooms: ${inserted.error.message}`, counts: null };
+    for (const r of inserted.data ?? []) roomIdByKey.set(`${r.floor_id}|${norm(r.name)}`, r.id);
+  }
+
+  // ── One "CSV Import" collection per room used ──
+  const roomKeysUsed = new Set<string>();
+  for (const r of usable) {
+    const propertyName = r.property.trim() || "Imported Items";
+    const propertyId = propertyIdByName.get(norm(propertyName))!;
+    const floorName = r.floor.trim() || "Main Floor";
+    const floorId = floorIdByKey.get(`${propertyId}|${norm(floorName)}`)!;
+    const roomName = r.room.trim() || "Imported";
+    roomKeysUsed.add(roomIdByKey.get(`${floorId}|${norm(roomName)}`)!);
+  }
+  const collectionInsert = await supabase
+    .from("collections")
+    .insert(
+      Array.from(roomKeysUsed).map((roomId) => ({
+        user_id: user.id,
+        room_id: roomId,
+        prompt_type: "csvImport",
+        custom_prompt: "Imported from CSV",
+        status: "completed",
+        captured_at: now,
+        created_at: now,
+        updated_at: now,
+      }))
+    )
+    .select("id, room_id");
+  if (collectionInsert.error) return { ok: false, error: `Failed creating collections: ${collectionInsert.error.message}`, counts: null };
+  const collectionIdByRoom = new Map<string, string>(
+    (collectionInsert.data ?? []).map((c) => [c.room_id, c.id])
+  );
+
+  // ── Assets ──
+  const assetRows = usable.map((r) => {
+    const propertyName = r.property.trim() || "Imported Items";
+    const propertyId = propertyIdByName.get(norm(propertyName))!;
+    const floorName = r.floor.trim() || "Main Floor";
+    const floorId = floorIdByKey.get(`${propertyId}|${norm(floorName)}`)!;
+    const roomName = r.room.trim() || "Imported";
+    const roomId = roomIdByKey.get(`${floorId}|${norm(roomName)}`)!;
+    const collectionId = collectionIdByRoom.get(roomId)!;
+
+    const quantity = parseInt(r.quantity, 10);
+    const estimatedValue = parseFloat(r.estimated_value);
+    const askingPrice = parseFloat(r.asking_price);
+    const listingStatus = VALID_LISTING_STATUSES.includes(r.listing_status.trim().toLowerCase())
+      ? r.listing_status.trim().toLowerCase()
+      : "not_listed";
+
+    return {
+      user_id: user.id,
+      collection_id: collectionId,
+      name: r.name.trim(),
+      category: r.category.trim() || "Other",
+      asset_description: r.description.trim(),
+      condition: r.condition.trim() || null,
+      quantity: Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
+      confidence: 1.0,
+      estimated_value: Number.isFinite(estimatedValue) ? estimatedValue : null,
+      is_confirmed: true,
+      listing_status: listingStatus,
+      asking_price: Number.isFinite(askingPrice) ? askingPrice : null,
+      created_at: now,
+      updated_at: now,
+    };
+  });
+
+  const assetInsert = await supabase.from("assets").insert(assetRows);
+  if (assetInsert.error) return { ok: false, error: `Failed creating items: ${assetInsert.error.message}`, counts: null };
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/items");
+
+  return {
+    ok: true,
+    error: null,
+    counts: {
+      items: assetRows.length,
+      newProperties: newPropertyNames.size,
+      newFloors: newFloors.size,
+      newRooms: newRooms.size,
+    },
+  };
+}

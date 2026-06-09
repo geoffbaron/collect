@@ -39,10 +39,10 @@ export function ImportPanel() {
 
   return (
     <section className="card p-6">
-      <h2 className="text-lg font-semibold text-slate-900">Import</h2>
+      <h2 className="text-lg font-semibold text-slate-900">Restore from backup</h2>
       <p className="mt-1 text-sm text-slate-600">
-        Restore a JSON backup. New IDs are generated, so importing never overwrites existing data — it adds a fresh
-        copy. (Photos aren&apos;t included in JSON backups.)
+        Restore a full JSON backup exported from Collect. New IDs are generated, so importing never overwrites
+        existing data — it adds a fresh copy. (Photos aren&apos;t included in JSON backups.)
       </p>
 
       <label className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">

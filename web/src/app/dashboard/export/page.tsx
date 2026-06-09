@@ -1,4 +1,5 @@
 import { ImportPanel } from "./ImportPanel";
+import { CsvImportWizard } from "./CsvImportWizard";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,8 @@ export default function ExportPage() {
           </a>
         </div>
       </section>
+
+      <CsvImportWizard />
 
       <ImportPanel />
     </div>
