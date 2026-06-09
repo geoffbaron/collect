@@ -1,7 +1,42 @@
 // Mirrors the Supabase schema (public.* tables). Snake_case to match Postgres.
 
+// ── Account / organization layer (Phase 0 foundation) ──────────────────
+// Data is owned by an account, not a user. A homeowner is an account-of-one;
+// a property manager is an organization with many members. `user_id` on the
+// rows below is retained as "created by".
+
+export type ProductMode = "homeowner" | "property_manager";
+export type AccountRole = "owner" | "admin" | "manager" | "member";
+export type Plan = "free" | "pro" | "enterprise";
+
+export type Account = {
+  id: string;
+  name: string;
+  product_mode: ProductMode;
+  plan: Plan;
+  is_personal: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AccountMember = {
+  account_id: string;
+  user_id: string;
+  role: AccountRole;
+  region_id: string | null;
+  created_at: string;
+};
+
+export type Region = {
+  id: string;
+  account_id: string;
+  name: string;
+  created_at: string;
+};
+
 export type Property = {
   id: string;
+  account_id: string;
   user_id: string;
   name: string;
   address: string;
@@ -12,6 +47,7 @@ export type Property = {
 
 export type Floor = {
   id: string;
+  account_id: string;
   user_id: string;
   property_id: string;
   name: string;
@@ -21,6 +57,7 @@ export type Floor = {
 
 export type Room = {
   id: string;
+  account_id: string;
   user_id: string;
   floor_id: string;
   name: string;
@@ -29,6 +66,7 @@ export type Room = {
 
 export type Collection = {
   id: string;
+  account_id: string;
   user_id: string;
   room_id: string;
   prompt_type: string;
@@ -42,6 +80,7 @@ export type ListingStatus = "not_listed" | "ready" | "listed" | "pending" | "sol
 
 export type Asset = {
   id: string;
+  account_id: string;
   user_id: string;
   collection_id: string;
   name: string;
