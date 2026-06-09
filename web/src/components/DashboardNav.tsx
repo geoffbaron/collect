@@ -2,17 +2,42 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { ProductMode } from "@/lib/types";
 
-const links = [
-  { href: "/dashboard", label: "Overview" },
-  { href: "/dashboard/items", label: "Items" },
-  { href: "/dashboard/listings", label: "Listings" },
-  { href: "/dashboard/export", label: "Import / Export" },
-  { href: "/download", label: "Download apps" },
-];
+type NavLink = { href: string; label: string };
 
-export function DashboardNav({ email, plan }: { email?: string | null; plan?: string }) {
+// The two products share most routes but differ in labels and which sections
+// appear — property managers don't run a resale marketplace, homeowners don't
+// think in "portfolio" terms.
+const NAV_BY_MODE: Record<ProductMode, NavLink[]> = {
+  homeowner: [
+    { href: "/dashboard", label: "Overview" },
+    { href: "/dashboard/items", label: "Items" },
+    { href: "/dashboard/listings", label: "Listings" },
+    { href: "/dashboard/export", label: "Import / Export" },
+    { href: "/dashboard/settings", label: "Settings" },
+    { href: "/download", label: "Download apps" },
+  ],
+  property_manager: [
+    { href: "/dashboard", label: "Portfolio" },
+    { href: "/dashboard/items", label: "Inventory" },
+    { href: "/dashboard/export", label: "Import / Export" },
+    { href: "/dashboard/settings", label: "Settings" },
+    { href: "/download", label: "Download apps" },
+  ],
+};
+
+export function DashboardNav({
+  email,
+  plan,
+  productMode = "homeowner",
+}: {
+  email?: string | null;
+  plan?: string;
+  productMode?: ProductMode;
+}) {
   const pathname = usePathname();
+  const links = NAV_BY_MODE[productMode];
 
   return (
     <header className="border-b border-slate-200 bg-white">
@@ -21,6 +46,11 @@ export function DashboardNav({ email, plan }: { email?: string | null; plan?: st
           <Link href="/dashboard" className="flex items-center gap-2 font-bold text-slate-900">
             <span className="grid h-7 w-7 place-items-center rounded-lg bg-brand text-white">C</span>
             Collect
+            {productMode === "property_manager" && (
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
+                Property
+              </span>
+            )}
           </Link>
           <nav className="flex flex-wrap gap-1 text-sm">
             {links.map((l) => {

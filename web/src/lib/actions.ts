@@ -2,6 +2,39 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import type { ProductMode } from "@/lib/types";
+
+/**
+ * Switches the signed-in account between the homeowner and property-manager
+ * products. Only account owners/admins can do this (enforced by the
+ * "accounts: admins update" RLS policy); a personal account-of-one owner
+ * qualifies. Revalidates the dashboard layout so the nav re-renders.
+ */
+export async function setProductMode(mode: ProductMode) {
+  if (mode !== "homeowner" && mode !== "property_manager") {
+    return { ok: false, error: "Unknown product mode." };
+  }
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Not signed in." };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("account_id")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (!profile?.account_id) return { ok: false, error: "No account found." };
+
+  const { error } = await supabase
+    .from("accounts")
+    .update({ product_mode: mode })
+    .eq("id", profile.account_id);
+
+  revalidatePath("/dashboard", "layout");
+  return { ok: !error, error: error?.message };
+}
 
 const EDITABLE_FIELDS = [
   "name",

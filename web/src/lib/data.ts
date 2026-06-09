@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { AssetWithLocation, Property } from "@/lib/types";
+import type { Account, AssetWithLocation, Property } from "@/lib/types";
 
 export async function getUser() {
   const supabase = createClient();
@@ -17,6 +17,27 @@ export async function getProfile() {
   if (!user) return null;
   const { data } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
   return data;
+}
+
+/** The signed-in user's account (carries product_mode + plan). */
+export async function getAccount(): Promise<Account | null> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("account_id")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (!profile?.account_id) return null;
+  const { data } = await supabase
+    .from("accounts")
+    .select("*")
+    .eq("id", profile.account_id)
+    .maybeSingle();
+  return (data as Account) ?? null;
 }
 
 export async function getProperties(): Promise<Property[]> {
