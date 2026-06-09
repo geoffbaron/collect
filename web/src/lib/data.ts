@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Account, AssetWithLocation, Building, CommonArea, Property, Unit } from "@/lib/types";
+import type { Account, AssetWithLocation, Building, CommonArea, Inspection, Property, Unit } from "@/lib/types";
 
 export async function getUser() {
   const supabase = createClient();
@@ -132,6 +132,152 @@ export async function getCommonAreas(propertyId: string): Promise<CommonArea[]> 
     .order("name");
   return (data ?? []) as CommonArea[];
 }
+
+export async function getInspections(unitId: string): Promise<Inspection[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("inspections")
+    .select("*")
+    .eq("unit_id", unitId)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
+  return (data ?? []) as Inspection[];
+}
+
+export async function getInspection(id: string): Promise<Inspection | null> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("inspections")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  return (data as Inspection) ?? null;
+}
+
+/**
+ * For a move_out inspection, compute the condition diff against the baseline
+ * move_in inspection. Returns an array of rooms, each with per-item comparisons.
+ */
+export async function getInspectionDiff(
+  moveOutInspectionId: string
+): Promise<InspectionDiffResult> {
+  const supabase = createClient();
+
+  const moveOut = await getInspection(moveOutInspectionId);
+  if (!moveOut?.baseline_inspection_id) return { rooms: [], unitId: moveOut?.unit_id ?? "" };
+
+  // Fetch all assets from both inspections, joined to room name
+  const fetchAssets = async (inspectionId: string) => {
+    const { data } = await supabase
+      .from("assets")
+      .select(
+        "id, name, category, condition, estimated_value, photo1_path, collection:collections!inner(inspection_id, room:rooms(name))"
+      )
+      .eq("collections.inspection_id", inspectionId)
+      .is("deleted_at", null);
+    return (data ?? []).map((row: any) => ({
+      name: row.name as string,
+      category: row.category as string,
+      condition: (row.condition ?? "Unknown") as string,
+      estimatedValue: row.estimated_value as number | null,
+      photo1Path: row.photo1_path as string | null,
+      roomName: (row.collection?.room?.name ?? "Unknown") as string,
+    }));
+  };
+
+  const [moveInAssets, moveOutAssets] = await Promise.all([
+    fetchAssets(moveOut.baseline_inspection_id),
+    fetchAssets(moveOutInspectionId),
+  ]);
+
+  // Group by room
+  const roomsMap = new Map<string, InspectionDiffRoom>();
+
+  const getOrCreate = (name: string): InspectionDiffRoom => {
+    if (!roomsMap.has(name)) roomsMap.set(name, { roomName: name, items: [] });
+    return roomsMap.get(name)!;
+  };
+
+  // Index move_in by room+name
+  const moveInByRoomItem = new Map<string, typeof moveInAssets[0]>();
+  for (const a of moveInAssets) {
+    moveInByRoomItem.set(`${a.roomName}||${a.name.toLowerCase()}`, a);
+  }
+
+  // Mark all move_in items as baseline
+  for (const a of moveInAssets) {
+    getOrCreate(a.roomName).items.push({
+      name: a.name,
+      category: a.category,
+      moveInCondition: a.condition,
+      moveOutCondition: null,
+      photo1Path: a.photo1Path,
+      isDamaged: false,
+      isMissing: false,
+    });
+  }
+
+  // Process move_out: match to move_in items or flag as new damage
+  for (const a of moveOutAssets) {
+    const key = `${a.roomName}||${a.name.toLowerCase()}`;
+    const room = getOrCreate(a.roomName);
+    const existing = room.items.find(
+      (i) => i.name.toLowerCase() === a.name.toLowerCase()
+    );
+    const isDamaged =
+      a.condition?.toLowerCase().includes("damage") ||
+      a.condition?.toLowerCase().includes("poor") ||
+      a.condition?.toLowerCase() === "bad";
+
+    if (existing) {
+      existing.moveOutCondition = a.condition;
+      existing.isDamaged = isDamaged;
+      if (!existing.photo1Path) existing.photo1Path = a.photo1Path;
+    } else {
+      // New item found in move_out (damage that wasn't there at move_in)
+      room.items.push({
+        name: a.name,
+        category: a.category,
+        moveInCondition: null,
+        moveOutCondition: a.condition,
+        photo1Path: a.photo1Path,
+        isDamaged,
+        isMissing: false,
+      });
+    }
+  }
+
+  // Mark items from move_in that don't appear in move_out as missing
+  for (const a of moveInAssets) {
+    const room = roomsMap.get(a.roomName);
+    const item = room?.items.find((i) => i.name.toLowerCase() === a.name.toLowerCase() && i.moveOutCondition === null);
+    if (item && !moveOutAssets.some((o) => o.roomName === a.roomName && o.name.toLowerCase() === a.name.toLowerCase())) {
+      item.isMissing = true;
+    }
+  }
+
+  return { rooms: Array.from(roomsMap.values()), unitId: moveOut.unit_id };
+}
+
+export type InspectionDiffRoom = {
+  roomName: string;
+  items: InspectionDiffItem[];
+};
+
+export type InspectionDiffItem = {
+  name: string;
+  category: string;
+  moveInCondition: string | null;
+  moveOutCondition: string | null;
+  photo1Path: string | null;
+  isDamaged: boolean;
+  isMissing: boolean;
+};
+
+export type InspectionDiffResult = {
+  rooms: InspectionDiffRoom[];
+  unitId: string;
+};
 
 /** Vacancy summary for a property's units (for the PM portfolio dashboard). */
 export async function getPropertyVacancySummary(

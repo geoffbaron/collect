@@ -43,7 +43,8 @@ struct FloorUpsertDTO: Encodable {
 struct RoomUpsertDTO: Encodable {
     let id: String
     let userId: String
-    let floorId: String
+    let floorId: String?   // nil for PM unit rooms
+    let unitId: String?    // set for PM unit rooms
     let name: String
     let mapLatitude: Double?
     let mapLongitude: Double?
@@ -54,6 +55,7 @@ struct RoomUpsertDTO: Encodable {
         case id
         case userId       = "user_id"
         case floorId      = "floor_id"
+        case unitId       = "unit_id"
         case name
         case mapLatitude  = "map_latitude"
         case mapLongitude = "map_longitude"
@@ -71,6 +73,7 @@ struct CollectionUpsertDTO: Encodable {
     let status: String
     let capturedAt: Date
     let updatedAt: Date
+    let inspectionId: String?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -81,6 +84,7 @@ struct CollectionUpsertDTO: Encodable {
         case status
         case capturedAt   = "captured_at"
         case updatedAt    = "updated_at"
+        case inspectionId = "inspection_id"
     }
 }
 

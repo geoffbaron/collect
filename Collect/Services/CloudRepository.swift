@@ -38,11 +38,14 @@ actor CloudRepository {
     }
 
     func upsert(room: Room, userID: String) async throws {
-        guard let floorID = room.floor?.id else { return }
+        let floorID = room.floor?.id.uuidString
+        let unitID  = room.unitID?.uuidString
+        guard floorID != nil || unitID != nil else { return }
         let dto = RoomUpsertDTO(
             id:           room.id.uuidString,
             userId:       userID,
-            floorId:      floorID.uuidString,
+            floorId:      floorID,
+            unitId:       unitID,
             name:         room.name,
             mapLatitude:  room.mapLatitude,
             mapLongitude: room.mapLongitude,
@@ -62,7 +65,8 @@ actor CloudRepository {
             customPrompt: collection.customPrompt,
             status:       collection.status.rawValue,
             capturedAt:   collection.capturedAt,
-            updatedAt:    Date()
+            updatedAt:    Date(),
+            inspectionId: collection.inspectionID?.uuidString
         )
         try await db.from("collections").upsert(dto).execute()
     }

@@ -59,6 +59,9 @@
 		A240AC /* PMPropertyDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B240AC /* PMPropertyDetailView.swift */; };
 		A250AC /* BuildingDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B250AC /* BuildingDetailView.swift */; };
 		A260AC /* UnitDetailView.swift in Sources */     = {isa = PBXBuildFile; fileRef = B260AC /* UnitDetailView.swift */; };
+		A270AC /* PMInspection.swift in Sources */        = {isa = PBXBuildFile; fileRef = B270AC /* PMInspection.swift */; };
+		A280AC /* InspectionService.swift in Sources */   = {isa = PBXBuildFile; fileRef = B280AC /* InspectionService.swift */; };
+		A290AC /* InspectionFlowView.swift in Sources */  = {isa = PBXBuildFile; fileRef = B290AC /* InspectionFlowView.swift */; };
 		A10063 /* LimitsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10063 /* LimitsService.swift */; };
 		A10064 /* UsageLimits.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10064 /* UsageLimits.swift */; };
 		A10065 /* GroupReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10065 /* GroupReviewView.swift */; };
@@ -126,6 +129,9 @@
 		B240AC /* PMPropertyDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PMPropertyDetailView.swift; sourceTree = "<group>"; };
 		B250AC /* BuildingDetailView.swift */  = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildingDetailView.swift;  sourceTree = "<group>"; };
 		B260AC /* UnitDetailView.swift */      = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitDetailView.swift;      sourceTree = "<group>"; };
+		B270AC /* PMInspection.swift */        = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PMInspection.swift;        sourceTree = "<group>"; };
+		B280AC /* InspectionService.swift */   = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectionService.swift;   sourceTree = "<group>"; };
+		B290AC /* InspectionFlowView.swift */  = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectionFlowView.swift;  sourceTree = "<group>"; };
 		B10063 /* LimitsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitsService.swift; sourceTree = "<group>"; };
 		B10064 /* UsageLimits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageLimits.swift; sourceTree = "<group>"; };
 		B10065 /* GroupReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupReviewView.swift; sourceTree = "<group>"; };
@@ -190,6 +196,7 @@
 				B10071 /* Marketplace.swift */,
 				B200AC /* PMBuilding.swift */,
 				B210AC /* PMUnit.swift */,
+				B270AC /* PMInspection.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -206,6 +213,7 @@
 				B100AC /* AccountService.swift */,
 				B220AC /* BuildingService.swift */,
 				B230AC /* UnitService.swift */,
+				B280AC /* InspectionService.swift */,
 				B10063 /* LimitsService.swift */,
 				B10066 /* SyncService.swift */,
 				B10067 /* CloudRepository.swift */,
@@ -284,6 +292,7 @@
 				B240AC /* PMPropertyDetailView.swift */,
 				B250AC /* BuildingDetailView.swift */,
 				B260AC /* UnitDetailView.swift */,
+				B290AC /* InspectionFlowView.swift */,
 			);
 			path = Property;
 			sourceTree = "<group>";
@@ -483,6 +492,9 @@
 				A240AC /* PMPropertyDetailView.swift in Sources */,
 				A250AC /* BuildingDetailView.swift in Sources */,
 				A260AC /* UnitDetailView.swift in Sources */,
+				A270AC /* PMInspection.swift in Sources */,
+				A280AC /* InspectionService.swift in Sources */,
+				A290AC /* InspectionFlowView.swift in Sources */,
 				A10063 /* LimitsService.swift in Sources */,
 				A10064 /* UsageLimits.swift in Sources */,
 				A10065 /* GroupReviewView.swift in Sources */,

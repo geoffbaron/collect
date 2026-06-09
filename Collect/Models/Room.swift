@@ -29,6 +29,15 @@ final class Room {
         self.collections = []
     }
 
+    /// PM unit room — no floor; identified by unitID for the PM hierarchy.
+    init(name: String, unitID: UUID) {
+        self.id = UUID()
+        self.name = name
+        self.floor = nil
+        self.unitID = unitID
+        self.collections = []
+    }
+
     var hasLayout: Bool { layoutData != nil }
 
     /// Effective GPS center for the property map — manual override, or averaged from asset GPS.

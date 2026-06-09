@@ -10,6 +10,7 @@ struct ResultsView: View {
     /// When analyzing a saved draft, the draft collection to fill in place of
     /// creating a new one. nil for a normal scan.
     let existingCollection: Collection?
+    let inspectionID: UUID?
     let onSaved: () -> Void
 
     @Environment(\.modelContext) private var modelContext
@@ -18,13 +19,14 @@ struct ResultsView: View {
     @State private var items: [AssetResult]
     @State private var saved = false
 
-    init(room: Room, template: PromptTemplate, scanResult: ScanResult, source: ScanSource, capturedLayout: RoomLayout? = nil, existingCollection: Collection? = nil, onSaved: @escaping () -> Void) {
+    init(room: Room, template: PromptTemplate, scanResult: ScanResult, source: ScanSource, capturedLayout: RoomLayout? = nil, existingCollection: Collection? = nil, inspectionID: UUID? = nil, onSaved: @escaping () -> Void) {
         self.room = room
         self.template = template
         self.scanResult = scanResult
         self.source = source
         self.capturedLayout = capturedLayout
         self.existingCollection = existingCollection
+        self.inspectionID = inspectionID
         self.onSaved = onSaved
         self._items = State(initialValue: scanResult.assets)
     }
@@ -99,7 +101,6 @@ struct ResultsView: View {
     private func save() {
         let collection: Collection
         if let existing = existingCollection {
-            // Analyzing a draft — fill it in place and clear the held media.
             collection = existing
             collection.status = .completed
             collection.pendingPhotos = nil
@@ -107,6 +108,7 @@ struct ResultsView: View {
         } else {
             collection = Collection(promptType: template.type, room: room)
             collection.status = .completed
+            collection.inspectionID = inspectionID
             modelContext.insert(collection)
         }
 

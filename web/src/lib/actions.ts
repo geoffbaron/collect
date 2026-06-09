@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import type { LeaseStatus, ProductMode, TurnStatus } from "@/lib/types";
+import type { InspectionType, LeaseStatus, ProductMode, TurnStatus } from "@/lib/types";
 
 /**
  * Switches the signed-in account between the homeowner and property-manager
@@ -183,6 +183,59 @@ export async function importUnitsFromCsv(
 
   revalidatePath(`/dashboard/portfolio/${propertyId}/${buildingId}`);
   return { ok: true, error: null, count: rows.length };
+}
+
+// ── Inspections ──────────────────────────────────────────────
+
+export async function createInspection(
+  unitId: string,
+  type: InspectionType,
+  baselineInspectionId: string | null = null,
+  notes = ""
+) {
+  const VALID_TYPES: InspectionType[] = ["move_in", "move_out", "routine", "turn"];
+  if (!VALID_TYPES.includes(type)) return { ok: false, error: "Invalid inspection type.", inspection: null };
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("inspections")
+    .insert({
+      unit_id: unitId,
+      inspection_type: type,
+      notes,
+      ...(baselineInspectionId ? { baseline_inspection_id: baselineInspectionId } : {}),
+    })
+    .select()
+    .single();
+  if (error) return { ok: false, error: error.message, inspection: null };
+
+  const { data: unit } = await supabase
+    .from("units")
+    .select("property_id, building_id")
+    .eq("id", unitId)
+    .maybeSingle();
+  if (unit?.property_id && unit?.building_id) {
+    revalidatePath(`/dashboard/portfolio/${unit.property_id}/${unit.building_id}/${unitId}`);
+  }
+  return { ok: true, error: null, inspection: data };
+}
+
+export async function completeInspection(id: string, unitId: string) {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("inspections")
+    .update({ status: "completed", completed_at: new Date().toISOString() })
+    .eq("id", id);
+
+  const { data: unit } = await supabase
+    .from("units")
+    .select("property_id, building_id")
+    .eq("id", unitId)
+    .maybeSingle();
+  if (unit?.property_id && unit?.building_id) {
+    revalidatePath(`/dashboard/portfolio/${unit.property_id}/${unit.building_id}/${unitId}`);
+  }
+  return { ok: !error, error: error?.message };
 }
 
 type Backup = {
