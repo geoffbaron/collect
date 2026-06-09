@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Account, AssetWithLocation, Building, CommonArea, Inspection, Property, Unit } from "@/lib/types";
+import type { Account, AssetWithLocation, Building, CommonArea, Inspection, Property, ProductMode, Unit } from "@/lib/types";
 
 export async function getUser() {
   const supabase = createClient();
@@ -17,6 +17,49 @@ export async function getProfile() {
   if (!user) return null;
   const { data } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
   return data;
+}
+
+export type AdminPlatformStats = {
+  total_accounts: number;
+  total_users: number;
+  homeowner_accounts: number;
+  property_mgr_accounts: number;
+  free_accounts: number;
+  pro_accounts: number;
+  enterprise_accounts: number;
+  total_properties: number;
+  total_assets: number;
+  signups_last_7_days: number;
+  signups_last_30_days: number;
+};
+
+export type AdminAccountRow = {
+  id: string;
+  name: string;
+  product_mode: ProductMode;
+  plan: string;
+  is_personal: boolean;
+  created_at: string;
+  member_count: number;
+  owner_email: string | null;
+  property_count: number;
+  asset_count: number;
+};
+
+/** Platform-wide stats for the super-admin overview page. Returns null for non-admins. */
+export async function getAdminStats(): Promise<AdminPlatformStats | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("admin_platform_stats").maybeSingle();
+  if (error || !data) return null;
+  return data as AdminPlatformStats;
+}
+
+/** One row per account with usage stats, for the super-admin accounts table. Returns [] for non-admins. */
+export async function getAdminAccounts(): Promise<AdminAccountRow[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("admin_list_accounts");
+  if (error || !data) return [];
+  return data as AdminAccountRow[];
 }
 
 /** The signed-in user's account (carries product_mode + plan). */
