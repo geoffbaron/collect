@@ -12,6 +12,8 @@ enum CaptureMode {
 struct ScanFlowView: View {
     let room: Room
     @Binding var isPresented: Bool
+    /// Set when this scan is part of an inspection — tagged on the resulting Collection.
+    let inspectionID: UUID?
     @EnvironmentObject private var limitsService: LimitsService
     @Environment(\.modelContext) private var modelContext
 
@@ -43,9 +45,10 @@ struct ScanFlowView: View {
     /// creating a new one.
     private let draftCollection: Collection?
 
-    init(room: Room, isPresented: Binding<Bool>, entry: Entry = .full) {
+    init(room: Room, isPresented: Binding<Bool>, entry: Entry = .full, inspectionID: UUID? = nil) {
         self.room = room
         self._isPresented = isPresented
+        self.inspectionID = inspectionID
         switch entry {
         case .full:
             self.draftCollection = nil
@@ -149,7 +152,8 @@ struct ScanFlowView: View {
                 scanResult: scanResult,
                 source: source,
                 capturedLayout: layout,
-                existingCollection: draftCollection
+                existingCollection: draftCollection,
+                inspectionID: inspectionID
             ) {
                 Task { await limitsService.refreshUsage() }
                 isPresented = false

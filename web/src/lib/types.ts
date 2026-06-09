@@ -119,6 +119,40 @@ export type CommonArea = {
   deleted_at: string | null;
 };
 
+// ── Inspections (Phase 3) ───────────────────────────────────
+
+export type InspectionType = "move_in" | "move_out" | "routine" | "turn";
+export type InspectionStatus = "in_progress" | "completed" | "cancelled";
+
+export type Inspection = {
+  id: string;
+  account_id: string;
+  unit_id: string;
+  inspection_type: InspectionType;
+  status: InspectionStatus;
+  inspector_id: string | null;
+  scheduled_at: string | null;
+  completed_at: string | null;
+  notes: string;
+  baseline_inspection_id: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
+export const INSPECTION_TYPE_LABELS: Record<InspectionType, string> = {
+  move_in:  "Move-In",
+  move_out: "Move-Out",
+  routine:  "Routine",
+  turn:     "Turn",
+};
+
+export const INSPECTION_STATUS_LABELS: Record<InspectionStatus, string> = {
+  in_progress: "In Progress",
+  completed:   "Completed",
+  cancelled:   "Cancelled",
+};
+
 export const LEASE_STATUS_LABELS: Record<LeaseStatus, string> = {
   vacant: "Vacant",
   occupied: "Occupied",

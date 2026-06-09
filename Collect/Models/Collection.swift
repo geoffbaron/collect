@@ -27,6 +27,9 @@ final class Collection {
     /// never synced, so drafts stay on the device that captured them.
     var pendingPhotos: [Data]?
 
+    /// Set when this scan was captured as part of an inspection.
+    var inspectionID: UUID?
+
     @Relationship(deleteRule: .cascade, inverse: \Asset.collection)
     var assets: [Asset]
 

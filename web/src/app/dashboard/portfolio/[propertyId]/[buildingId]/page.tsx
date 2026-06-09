@@ -127,8 +127,11 @@ function UnitCard({
   buildingId: string;
 }) {
   return (
-    <div className="bg-white p-4">
-      <div className="flex items-start justify-between gap-2">
+    <Link
+      href={`/dashboard/portfolio/${propertyId}/${buildingId}/${unit.id}`}
+      className="block bg-white p-4 hover:bg-slate-50"
+    >
+    <div className="flex items-start justify-between gap-2">
         <div>
           <div className="font-semibold text-slate-900">Unit {unit.unit_number}</div>
           {(unit.bedrooms != null || unit.bathrooms != null || unit.sqft != null) && (
@@ -161,6 +164,6 @@ function UnitCard({
       {unit.current_tenant_name && (
         <div className="mt-1 text-xs text-slate-500 truncate">{unit.current_tenant_name}</div>
       )}
-    </div>
+    </Link>
   );
 }
