@@ -51,6 +51,7 @@
 		A10060 /* SupabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10060 /* SupabaseManager.swift */; };
 		A10061 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = C10060 /* Supabase */; };
 		A10062 /* FeaturesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10062 /* FeaturesService.swift */; };
+		A100AC /* AccountService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100AC /* AccountService.swift */; };
 		A10063 /* LimitsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10063 /* LimitsService.swift */; };
 		A10064 /* UsageLimits.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10064 /* UsageLimits.swift */; };
 		A10065 /* GroupReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10065 /* GroupReviewView.swift */; };
@@ -110,6 +111,7 @@
 		B10054 /* PropertyMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyMapView.swift; sourceTree = "<group>"; };
 		B10060 /* SupabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseManager.swift; sourceTree = "<group>"; };
 		B10062 /* FeaturesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeaturesService.swift; sourceTree = "<group>"; };
+		B100AC /* AccountService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountService.swift; sourceTree = "<group>"; };
 		B10063 /* LimitsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitsService.swift; sourceTree = "<group>"; };
 		B10064 /* UsageLimits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageLimits.swift; sourceTree = "<group>"; };
 		B10065 /* GroupReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupReviewView.swift; sourceTree = "<group>"; };
@@ -185,6 +187,7 @@
 				B10041 /* LocationService.swift */,
 				B10060 /* SupabaseManager.swift */,
 				B10062 /* FeaturesService.swift */,
+				B100AC /* AccountService.swift */,
 				B10063 /* LimitsService.swift */,
 				B10066 /* SyncService.swift */,
 				B10067 /* CloudRepository.swift */,
@@ -451,6 +454,7 @@
 				A10054 /* PropertyMapView.swift in Sources */,
 				A10060 /* SupabaseManager.swift in Sources */,
 				A10062 /* FeaturesService.swift in Sources */,
+				A100AC /* AccountService.swift in Sources */,
 				A10063 /* LimitsService.swift in Sources */,
 				A10064 /* UsageLimits.swift in Sources */,
 				A10065 /* GroupReviewView.swift in Sources */,

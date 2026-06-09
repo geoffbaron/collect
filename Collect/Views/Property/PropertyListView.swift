@@ -5,6 +5,7 @@ struct PropertyListView: View {
     @EnvironmentObject private var authService: AuthService
     @EnvironmentObject private var limitsService: LimitsService
     @EnvironmentObject private var syncService: SyncService
+    @EnvironmentObject private var accountService: AccountService
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Property.updatedAt, order: .reverse) private var properties: [Property]
     @State private var showAddProperty = false
@@ -33,7 +34,7 @@ struct PropertyListView: View {
                     propertyList
                 }
             }
-            .navigationTitle("Properties")
+            .navigationTitle(accountService.isPropertyManager ? "Portfolio" : "Properties")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -51,11 +52,15 @@ struct PropertyListView: View {
                     }
                 }
 
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showListings = true
-                    } label: {
-                        Image(systemName: "storefront")
+                // Resale marketplace is a homeowner feature — hidden for
+                // property managers, who don't list tenants' belongings.
+                if !accountService.isPropertyManager {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            showListings = true
+                        } label: {
+                            Image(systemName: "storefront")
+                        }
                     }
                 }
 
