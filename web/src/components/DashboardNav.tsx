@@ -31,10 +31,12 @@ export function DashboardNav({
   email,
   plan,
   productMode = "homeowner",
+  isSuperAdmin = false,
 }: {
   email?: string | null;
   plan?: string;
   productMode?: ProductMode;
+  isSuperAdmin?: boolean;
 }) {
   const pathname = usePathname();
   const links = NAV_BY_MODE[productMode];
@@ -72,6 +74,14 @@ export function DashboardNav({
         </div>
 
         <div className="flex items-center gap-3 text-sm">
+          {isSuperAdmin && (
+            <Link
+              href="/admin"
+              className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold uppercase text-amber-700 hover:bg-amber-200"
+            >
+              Admin
+            </Link>
+          )}
           <span className="hidden text-slate-500 sm:inline">{email}</span>
           {plan && plan !== "free" && (
             <span className="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-semibold uppercase text-brand-700">
