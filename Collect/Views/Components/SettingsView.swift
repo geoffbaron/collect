@@ -46,6 +46,30 @@ struct SettingsView: View {
                     }
                 }
 
+                // MARK: Super admin persona switcher (testing only)
+                if accountService.isSuperAdmin {
+                    Section {
+                        Picker("Test as", selection: Binding(
+                            get: {
+                                TestPersona.matching(productMode: accountService.productMode, plan: accountService.plan)
+                            },
+                            set: { newPersona in
+                                guard let newPersona else { return }
+                                Task { await accountService.applyPersona(newPersona) }
+                            }
+                        )) {
+                            Text("Custom").tag(Optional<TestPersona>.none)
+                            ForEach(TestPersona.allCases) { persona in
+                                Text(persona.displayName).tag(Optional(persona))
+                            }
+                        }
+                    } header: {
+                        Text("Super Admin")
+                    } footer: {
+                        Text("Switch this account between product/plan combinations to preview the app as different kinds of customers. This changes your real account's settings.")
+                    }
+                }
+
                 // MARK: Sign out
                 Section {
                     Button(role: .none) {
