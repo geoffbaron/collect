@@ -62,6 +62,22 @@ export async function getAdminAccounts(): Promise<AdminAccountRow[]> {
   return data as AdminAccountRow[];
 }
 
+export type AdminUserRow = {
+  id: string;
+  email: string | null;
+  name: string | null;
+  is_super_admin: boolean;
+  created_at: string;
+};
+
+/** Users matching a search term, for the super-admin "promote to super admin" picker. Returns [] for non-admins. */
+export async function getAdminUsers(search = ""): Promise<AdminUserRow[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("admin_list_users", { search });
+  if (error || !data) return [];
+  return data as AdminUserRow[];
+}
+
 /** The signed-in user's account (carries product_mode + plan). */
 export async function getAccount(): Promise<Account | null> {
   const supabase = createClient();
