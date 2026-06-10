@@ -87,14 +87,38 @@ final class AccountService: ObservableObject {
     }
 
     private struct ProfileRow: Codable {
+        let account_id: String?
         let is_super_admin: Bool?
     }
 
+    /// Fetches the signed-in account's product mode/plan and the user's
+    /// super-admin flag. Both lookups are scoped to the current user's id,
+    /// since super admins can read every row in `accounts`/`profiles`
+    /// (read-all RLS policies) and an unscoped `.single()` would otherwise
+    /// match more than one row for them.
     func fetch() async {
+        guard let session = try? await db.auth.session else {
+            print("AccountService: fetch failed — no session")
+            return
+        }
+        let userID = session.user.id.uuidString.lowercased()
+
         do {
+            let profile: ProfileRow = try await db
+                .from("profiles")
+                .select("account_id, is_super_admin")
+                .eq("id", value: userID)
+                .single()
+                .execute()
+                .value
+            isSuperAdmin = profile.is_super_admin ?? false
+
+            guard let accountId = profile.account_id else { return }
+
             let row: AccountRow = try await db
                 .from("accounts")
                 .select("id, product_mode, plan")
+                .eq("id", value: accountId)
                 .single()
                 .execute()
                 .value
@@ -103,18 +127,6 @@ final class AccountService: ObservableObject {
             plan        = row.plan
         } catch {
             print("AccountService: fetch failed — \(error)")
-        }
-
-        do {
-            let profile: ProfileRow = try await db
-                .from("profiles")
-                .select("is_super_admin")
-                .single()
-                .execute()
-                .value
-            isSuperAdmin = profile.is_super_admin ?? false
-        } catch {
-            print("AccountService: fetch profile failed — \(error)")
         }
     }
 
