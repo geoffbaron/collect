@@ -36,6 +36,24 @@ export async function setProductMode(mode: ProductMode) {
   return { ok: !error, error: error?.message };
 }
 
+/**
+ * Promotes or demotes another user's super-admin status. The
+ * admin_set_super_admin RPC re-checks is_super_admin() server-side and is a
+ * no-op for non-admins, so this is safe even if called by a regular user.
+ */
+export async function setSuperAdmin(userId: string, value: boolean) {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("admin_set_super_admin", {
+    target_user_id: userId,
+    value,
+  });
+  if (error) return { ok: false, error: error.message };
+  if (!data) return { ok: false, error: "Not authorized." };
+
+  revalidatePath("/admin/users");
+  return { ok: true };
+}
+
 const EDITABLE_FIELDS = [
   "name",
   "category",
