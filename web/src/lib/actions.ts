@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import type { CapitalAssetCondition, CapitalAssetType, InspectionType, LeaseStatus, ProductMode, TurnStatus, WorkOrderCategory, WorkOrderPriority, WorkOrderStatus } from "@/lib/types";
+import type { CapitalAssetCondition, CapitalAssetType, InspectionType, LeaseStatus, MaintenanceFrequency, ProductMode, TurnStatus, WorkOrderCategory, WorkOrderPriority, WorkOrderStatus } from "@/lib/types";
 
 /**
  * Switches the signed-in account between the homeowner and property-manager
@@ -380,6 +380,66 @@ export async function updateCapitalAssetCondition(id: string, propertyId: string
 
   revalidatePath(`/dashboard/portfolio/${propertyId}/capital-assets`);
   revalidatePath(`/dashboard/portfolio/${propertyId}/capital-assets/${id}`);
+  return { ok: !error, error: error?.message };
+}
+
+// ── Preventive Maintenance Schedules (Phase 4) ──────────────
+
+export async function createMaintenanceSchedule(input: {
+  propertyId: string;
+  buildingId?: string | null;
+  unitId?: string | null;
+  commonAreaId?: string | null;
+  title: string;
+  description?: string;
+  category: WorkOrderCategory;
+  frequency: MaintenanceFrequency;
+  nextDueDate: string;
+}) {
+  const title = input.title.trim();
+  if (!title) return { ok: false, error: "Title is required.", maintenanceSchedule: null };
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("maintenance_schedules")
+    .insert({
+      property_id: input.propertyId,
+      building_id: input.buildingId ?? null,
+      unit_id: input.unitId ?? null,
+      common_area_id: input.commonAreaId ?? null,
+      title,
+      description: input.description ?? "",
+      category: input.category,
+      frequency: input.frequency,
+      next_due_date: input.nextDueDate,
+    })
+    .select()
+    .single();
+  if (error) return { ok: false, error: error.message, maintenanceSchedule: null };
+
+  revalidatePath(`/dashboard/portfolio/${input.propertyId}/maintenance-schedules`);
+  if (input.unitId) {
+    const { data: unit } = await supabase
+      .from("units")
+      .select("property_id, building_id")
+      .eq("id", input.unitId)
+      .maybeSingle();
+    if (unit?.property_id && unit?.building_id) {
+      revalidatePath(`/dashboard/portfolio/${unit.property_id}/${unit.building_id}/${input.unitId}`);
+    }
+  }
+  return { ok: true, error: null, maintenanceSchedule: data };
+}
+
+export async function updateMaintenanceScheduleActive(id: string, propertyId: string, active: boolean) {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("maintenance_schedules")
+    .update({ active })
+    .eq("id", id);
+
+  revalidatePath(`/dashboard/portfolio/${propertyId}/maintenance-schedules`);
+  revalidatePath(`/dashboard/portfolio/${propertyId}/maintenance-schedules/${id}`);
   return { ok: !error, error: error?.message };
 }
 

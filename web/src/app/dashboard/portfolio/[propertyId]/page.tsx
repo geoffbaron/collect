@@ -60,6 +60,9 @@ export default async function PropertyPortfolioPage({
           <Link href={`/dashboard/portfolio/${property.id}/capital-assets`} className="btn-ghost">
             Capital Assets
           </Link>
+          <Link href={`/dashboard/portfolio/${property.id}/maintenance-schedules`} className="btn-ghost">
+            Maintenance
+          </Link>
           <Link href={`/dashboard/portfolio/${property.id}/work-orders`} className="btn-ghost">
             Work Orders
           </Link>

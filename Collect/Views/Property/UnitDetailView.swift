@@ -17,6 +17,9 @@ struct UnitDetailView: View {
     @StateObject private var capitalAssetService = CapitalAssetService()
     @State private var showNewCapitalAsset = false
 
+    @StateObject private var maintenanceScheduleService = MaintenanceScheduleService()
+    @State private var showNewMaintenanceSchedule = false
+
     var body: some View {
         List {
             // Unit info
@@ -149,6 +152,33 @@ struct UnitDetailView: View {
                 }
             }
 
+            // Maintenance schedules
+            Section {
+                if maintenanceScheduleService.isLoading {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .listRowBackground(Color.clear)
+                } else if maintenanceScheduleService.schedules.isEmpty {
+                    Text("No maintenance schedules yet.")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(maintenanceScheduleService.schedules) { schedule in
+                        NavigationLink {
+                            MaintenanceScheduleDetailView(schedule: schedule, maintenanceScheduleService: maintenanceScheduleService)
+                        } label: {
+                            MaintenanceScheduleRow(schedule: schedule)
+                        }
+                    }
+                }
+            } header: {
+                HStack {
+                    Text("Maintenance Schedules")
+                    Spacer()
+                    Button("New") { showNewMaintenanceSchedule = true }
+                        .font(.caption.weight(.medium))
+                }
+            }
+
             if !unit.notes.isEmpty {
                 Section("Notes") {
                     Text(unit.notes).foregroundStyle(.secondary)
@@ -161,6 +191,7 @@ struct UnitDetailView: View {
             await inspectionService.load(for: unit.id)
             await workOrderService.load(unitID: unit.id)
             await capitalAssetService.load(unitID: unit.id)
+            await maintenanceScheduleService.load(unitID: unit.id)
         }
         .sheet(isPresented: $showInspectionFlow) {
             if let inspection = activeInspection {
@@ -185,6 +216,14 @@ struct UnitDetailView: View {
                 buildingID: unit.buildingID,
                 unitID: unit.id,
                 capitalAssetService: capitalAssetService
+            )
+        }
+        .sheet(isPresented: $showNewMaintenanceSchedule) {
+            NewMaintenanceScheduleView(
+                propertyID: unit.propertyID,
+                buildingID: unit.buildingID,
+                unitID: unit.id,
+                maintenanceScheduleService: maintenanceScheduleService
             )
         }
         .confirmationDialog("Inspection Type", isPresented: $showTypeSheet, titleVisibility: .visible) {

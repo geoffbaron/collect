@@ -72,6 +72,11 @@
 		A310AC /* NewCapitalAssetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B310AC /* NewCapitalAssetView.swift */; };
 		A320AC /* CapitalAssetDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B320AC /* CapitalAssetDetailView.swift */; };
 		A330AC /* PropertyCapitalAssetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B330AC /* PropertyCapitalAssetsView.swift */; };
+		A340AC /* PMMaintenanceSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = B340AC /* PMMaintenanceSchedule.swift */; };
+		A350AC /* MaintenanceScheduleService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B350AC /* MaintenanceScheduleService.swift */; };
+		A360AC /* NewMaintenanceScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B360AC /* NewMaintenanceScheduleView.swift */; };
+		A370AC /* MaintenanceScheduleDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B370AC /* MaintenanceScheduleDetailView.swift */; };
+		A380AC /* PropertyMaintenanceSchedulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B380AC /* PropertyMaintenanceSchedulesView.swift */; };
 		A10063 /* LimitsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10063 /* LimitsService.swift */; };
 		A10064 /* UsageLimits.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10064 /* UsageLimits.swift */; };
 		A10065 /* GroupReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10065 /* GroupReviewView.swift */; };
@@ -152,6 +157,11 @@
 		B310AC /* NewCapitalAssetView.swift */  = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewCapitalAssetView.swift;  sourceTree = "<group>"; };
 		B320AC /* CapitalAssetDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapitalAssetDetailView.swift; sourceTree = "<group>"; };
 		B330AC /* PropertyCapitalAssetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyCapitalAssetsView.swift; sourceTree = "<group>"; };
+		B340AC /* PMMaintenanceSchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PMMaintenanceSchedule.swift; sourceTree = "<group>"; };
+		B350AC /* MaintenanceScheduleService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaintenanceScheduleService.swift; sourceTree = "<group>"; };
+		B360AC /* NewMaintenanceScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewMaintenanceScheduleView.swift; sourceTree = "<group>"; };
+		B370AC /* MaintenanceScheduleDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaintenanceScheduleDetailView.swift; sourceTree = "<group>"; };
+		B380AC /* PropertyMaintenanceSchedulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyMaintenanceSchedulesView.swift; sourceTree = "<group>"; };
 		B10063 /* LimitsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitsService.swift; sourceTree = "<group>"; };
 		B10064 /* UsageLimits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageLimits.swift; sourceTree = "<group>"; };
 		B10065 /* GroupReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupReviewView.swift; sourceTree = "<group>"; };
@@ -219,6 +229,7 @@
 				B270AC /* PMInspection.swift */,
 				B2A0AC /* PMWorkOrder.swift */,
 				B2F0AC /* PMCapitalAsset.swift */,
+				B340AC /* PMMaintenanceSchedule.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -238,6 +249,7 @@
 				B280AC /* InspectionService.swift */,
 				B2B0AC /* WorkOrderService.swift */,
 				B300AC /* CapitalAssetService.swift */,
+				B350AC /* MaintenanceScheduleService.swift */,
 				B10063 /* LimitsService.swift */,
 				B10066 /* SyncService.swift */,
 				B10067 /* CloudRepository.swift */,
@@ -323,6 +335,9 @@
 				B310AC /* NewCapitalAssetView.swift */,
 				B320AC /* CapitalAssetDetailView.swift */,
 				B330AC /* PropertyCapitalAssetsView.swift */,
+				B360AC /* NewMaintenanceScheduleView.swift */,
+				B370AC /* MaintenanceScheduleDetailView.swift */,
+				B380AC /* PropertyMaintenanceSchedulesView.swift */,
 			);
 			path = Property;
 			sourceTree = "<group>";
@@ -535,6 +550,11 @@
 				A310AC /* NewCapitalAssetView.swift in Sources */,
 				A320AC /* CapitalAssetDetailView.swift in Sources */,
 				A330AC /* PropertyCapitalAssetsView.swift in Sources */,
+				A340AC /* PMMaintenanceSchedule.swift in Sources */,
+				A350AC /* MaintenanceScheduleService.swift in Sources */,
+				A360AC /* NewMaintenanceScheduleView.swift in Sources */,
+				A370AC /* MaintenanceScheduleDetailView.swift in Sources */,
+				A380AC /* PropertyMaintenanceSchedulesView.swift in Sources */,
 				A10063 /* LimitsService.swift in Sources */,
 				A10064 /* UsageLimits.swift in Sources */,
 				A10065 /* GroupReviewView.swift in Sources */,

@@ -274,6 +274,39 @@ export const CAPITAL_ASSET_CONDITION_LABELS: Record<CapitalAssetCondition, strin
   needs_replacement: "Needs Replacement",
 };
 
+// ── Preventive Maintenance Schedules (Phase 4) ──────────────
+
+export type MaintenanceFrequency = "daily" | "weekly" | "monthly" | "quarterly" | "semiannual" | "annual";
+
+export type MaintenanceSchedule = {
+  id: string;
+  account_id: string;
+  property_id: string;
+  building_id: string | null;
+  unit_id: string | null;
+  common_area_id: string | null;
+  title: string;
+  description: string;
+  category: WorkOrderCategory;
+  frequency: MaintenanceFrequency;
+  next_due_date: string;
+  last_completed_at: string | null;
+  assigned_to: string | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
+export const MAINTENANCE_FREQUENCY_LABELS: Record<MaintenanceFrequency, string> = {
+  daily: "Daily",
+  weekly: "Weekly",
+  monthly: "Monthly",
+  quarterly: "Quarterly",
+  semiannual: "Semiannual",
+  annual: "Annual",
+};
+
 export const LEASE_STATUS_LABELS: Record<LeaseStatus, string> = {
   vacant: "Vacant",
   occupied: "Occupied",
