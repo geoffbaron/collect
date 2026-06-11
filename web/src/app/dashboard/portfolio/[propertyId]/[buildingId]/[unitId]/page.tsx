@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAccount, getBuildings, getCapitalAssets, getInspections, getProperties, getUnits, getWorkOrders } from "@/lib/data";
-import { CAPITAL_ASSET_CONDITION_LABELS, CAPITAL_ASSET_TYPE_LABELS, INSPECTION_STATUS_LABELS, INSPECTION_TYPE_LABELS, LEASE_STATUS_LABELS, TURN_STATUS_LABELS, WORK_ORDER_CATEGORY_LABELS, WORK_ORDER_STATUS_LABELS } from "@/lib/types";
+import { getAccount, getBuildings, getCapitalAssets, getInspections, getMaintenanceSchedules, getProperties, getUnits, getWorkOrders } from "@/lib/data";
+import { CAPITAL_ASSET_CONDITION_LABELS, CAPITAL_ASSET_TYPE_LABELS, INSPECTION_STATUS_LABELS, INSPECTION_TYPE_LABELS, LEASE_STATUS_LABELS, MAINTENANCE_FREQUENCY_LABELS, TURN_STATUS_LABELS, WORK_ORDER_CATEGORY_LABELS, WORK_ORDER_STATUS_LABELS } from "@/lib/types";
 import StartInspectionForm from "./StartInspectionForm";
 
 export const dynamic = "force-dynamic";
@@ -11,13 +11,14 @@ export default async function UnitDetailPage({
 }: {
   params: { propertyId: string; buildingId: string; unitId: string };
 }) {
-  const [properties, buildings, units, inspections, workOrders, capitalAssets, account] = await Promise.all([
+  const [properties, buildings, units, inspections, workOrders, capitalAssets, maintenanceSchedules, account] = await Promise.all([
     getProperties(),
     getBuildings(params.propertyId),
     getUnits({ buildingId: params.buildingId }),
     getInspections(params.unitId),
     getWorkOrders({ propertyId: params.propertyId, unitId: params.unitId }),
     getCapitalAssets({ propertyId: params.propertyId, unitId: params.unitId }),
+    getMaintenanceSchedules({ propertyId: params.propertyId, unitId: params.unitId }),
     getAccount(),
   ]);
 
@@ -31,6 +32,8 @@ export default async function UnitDetailPage({
   const lastMoveIn = inspections.find(
     (i) => i.inspection_type === "move_in" && i.status === "completed"
   );
+
+  const today = new Date().toISOString().slice(0, 10);
 
   return (
     <div className="space-y-6">
@@ -203,6 +206,40 @@ export default async function UnitDetailPage({
                 </Link>
               </li>
             ))}
+          </ul>
+        )}
+      </div>
+      {/* Maintenance schedules */}
+      <div className="card">
+        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
+          <span className="font-semibold text-slate-900">Maintenance Schedules</span>
+          <Link href={`/dashboard/portfolio/${property.id}/maintenance-schedules`} className="text-sm text-brand hover:underline">
+            View all
+          </Link>
+        </div>
+        {maintenanceSchedules.length === 0 ? (
+          <div className="px-5 py-6 text-center text-slate-500">No maintenance schedules for this unit yet.</div>
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {maintenanceSchedules.map((schedule) => {
+              const overdue = schedule.active && schedule.next_due_date < today;
+              return (
+                <li key={schedule.id}>
+                  <Link
+                    href={`/dashboard/portfolio/${property.id}/maintenance-schedules/${schedule.id}`}
+                    className="flex items-center justify-between px-5 py-4 hover:bg-slate-50"
+                  >
+                    <div>
+                      <div className="font-medium text-slate-900">{schedule.title}</div>
+                      <div className="text-sm text-slate-500">{MAINTENANCE_FREQUENCY_LABELS[schedule.frequency]}</div>
+                    </div>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${overdue ? "bg-red-100 text-red-700" : "bg-slate-100 text-slate-700"}`}>
+                      Due {new Date(schedule.next_due_date).toLocaleDateString()}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

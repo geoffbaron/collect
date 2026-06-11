@@ -32,6 +32,13 @@ struct PMPropertyDetailView: View {
             }
             ToolbarItem(placement: .primaryAction) {
                 NavigationLink {
+                    PropertyMaintenanceSchedulesView(property: property)
+                } label: {
+                    Image(systemName: "calendar.badge.clock")
+                }
+            }
+            ToolbarItem(placement: .primaryAction) {
+                NavigationLink {
                     PropertyWorkOrdersView(property: property)
                 } label: {
                     Image(systemName: "wrench.and.screwdriver")

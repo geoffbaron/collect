@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Account, AssetWithLocation, Building, CapitalAsset, CommonArea, Inspection, Property, ProductMode, Unit, WorkOrder } from "@/lib/types";
+import type { Account, AssetWithLocation, Building, CapitalAsset, CommonArea, Inspection, MaintenanceSchedule, Property, ProductMode, Unit, WorkOrder } from "@/lib/types";
 
 export async function getUser() {
   const supabase = createClient();
@@ -259,6 +259,30 @@ export async function getCapitalAsset(id: string): Promise<CapitalAsset | null> 
     .eq("id", id)
     .maybeSingle();
   return (data as CapitalAsset) ?? null;
+}
+
+// ── Preventive Maintenance Schedules (Phase 4) ──────────────
+
+export async function getMaintenanceSchedules(filter: { propertyId: string; unitId?: string }): Promise<MaintenanceSchedule[]> {
+  const supabase = createClient();
+  let query = supabase
+    .from("maintenance_schedules")
+    .select("*")
+    .eq("property_id", filter.propertyId)
+    .is("deleted_at", null);
+  if (filter.unitId) query = query.eq("unit_id", filter.unitId);
+  const { data } = await query.order("next_due_date", { ascending: true });
+  return (data ?? []) as MaintenanceSchedule[];
+}
+
+export async function getMaintenanceSchedule(id: string): Promise<MaintenanceSchedule | null> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("maintenance_schedules")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  return (data as MaintenanceSchedule) ?? null;
 }
 
 /**
