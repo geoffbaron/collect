@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { localDateString } from "@/lib/dates";
 import type { Account, AssetWithLocation, Building, CapitalAsset, CommonArea, Inspection, MaintenanceSchedule, Property, ProductMode, Unit, WorkOrder } from "@/lib/types";
 
 export async function getUser() {
@@ -109,8 +110,13 @@ export async function getProperties(): Promise<Property[]> {
   return data ?? [];
 }
 
-/** All of the user's items, each joined to its property/floor/room and a signed thumbnail. */
-export async function getAssetsWithLocation(): Promise<AssetWithLocation[]> {
+/**
+ * All of the user's items, each joined to its property/floor/room and a
+ * signed thumbnail. Pass `skipThumbnails: true` for views (e.g. the PM
+ * portfolio dashboard) that only need counts, to avoid signing a URL for
+ * every asset's photo.
+ */
+export async function getAssetsWithLocation(opts: { skipThumbnails?: boolean } = {}): Promise<AssetWithLocation[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("assets")
@@ -135,6 +141,8 @@ export async function getAssetsWithLocation(): Promise<AssetWithLocation[]> {
       thumb_url: null,
     };
   });
+
+  if (opts.skipThumbnails) return assets;
 
   // Batch-sign first-photo thumbnails (private bucket).
   const paths = assets.map((a) => a.photo1_path).filter((p): p is string => !!p);
@@ -163,6 +171,24 @@ export async function getBuildings(propertyId: string): Promise<Building[]> {
     .is("deleted_at", null)
     .order("name");
   return (data ?? []) as Building[];
+}
+
+/** Building counts for many properties in a single query, keyed by property_id. */
+export async function getBuildingCountsByProperty(propertyIds: string[]): Promise<Map<string, number>> {
+  const counts = new Map<string, number>();
+  if (propertyIds.length === 0) return counts;
+
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("buildings")
+    .select("property_id")
+    .in("property_id", propertyIds)
+    .is("deleted_at", null);
+
+  for (const row of data ?? []) {
+    counts.set(row.property_id, (counts.get(row.property_id) ?? 0) + 1);
+  }
+  return counts;
 }
 
 export async function getUnits(opts: {
@@ -302,7 +328,7 @@ export async function getOpenWorkOrders(): Promise<WorkOrder[]> {
 /** Active maintenance schedules whose next due date has passed, across every property. */
 export async function getOverdueMaintenanceSchedules(): Promise<MaintenanceSchedule[]> {
   const supabase = createClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDateString();
   const { data } = await supabase
     .from("maintenance_schedules")
     .select("*")

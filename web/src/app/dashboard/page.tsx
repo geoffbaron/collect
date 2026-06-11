@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { getAccount, getAssetsWithLocation, getBuildings, getOpenWorkOrders, getOverdueMaintenanceSchedules, getPortfolioVacancySummary, getProperties } from "@/lib/data";
+import { getAccount, getAssetsWithLocation, getBuildingCountsByProperty, getOpenWorkOrders, getOverdueMaintenanceSchedules, getPortfolioVacancySummary, getProperties } from "@/lib/data";
 import { WORK_ORDER_PRIORITY_LABELS } from "@/lib/types";
+import { formatDateOnly } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
@@ -8,26 +9,25 @@ const fmt = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
 export default async function DashboardPage() {
-  const [assets, properties, account] = await Promise.all([
-    getAssetsWithLocation(),
-    getProperties(),
-    getAccount(),
-  ]);
+  const [account, properties] = await Promise.all([getAccount(), getProperties()]);
   const isPM = account?.product_mode === "property_manager";
 
-  // For PM mode, fetch building counts per property in parallel
-  const buildingCountMap = new Map<string, number>();
+  // PM dashboard only needs item counts, so skip signing photo thumbnails.
+  const assets = await getAssetsWithLocation({ skipThumbnails: isPM });
+
+  // For PM mode, fetch building counts (single query) and portfolio stats in parallel
+  let buildingCountMap = new Map<string, number>();
   let openWorkOrders: Awaited<ReturnType<typeof getOpenWorkOrders>> = [];
   let overdueMaintenance: Awaited<ReturnType<typeof getOverdueMaintenanceSchedules>> = [];
   let vacancy: Awaited<ReturnType<typeof getPortfolioVacancySummary>> = { total: 0, vacant: 0, occupied: 0, notice: 0 };
   if (isPM && properties.length > 0) {
-    const [buildingArrays, openWO, overdueMS, vacancySummary] = await Promise.all([
-      Promise.all(properties.map((p) => getBuildings(p.id))),
+    const [buildingCounts, openWO, overdueMS, vacancySummary] = await Promise.all([
+      getBuildingCountsByProperty(properties.map((p) => p.id)),
       getOpenWorkOrders(),
       getOverdueMaintenanceSchedules(),
       getPortfolioVacancySummary(),
     ]);
-    properties.forEach((p, i) => buildingCountMap.set(p.id, buildingArrays[i].length));
+    buildingCountMap = buildingCounts;
     openWorkOrders = openWO;
     overdueMaintenance = overdueMS;
     vacancy = vacancySummary;
@@ -137,7 +137,7 @@ export default async function DashboardPage() {
                         <div className="text-sm text-slate-500">{propertyNameById.get(schedule.property_id) ?? "Unknown property"}</div>
                       </div>
                       <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
-                        Due {new Date(schedule.next_due_date).toLocaleDateString()}
+                        Due {formatDateOnly(schedule.next_due_date)}
                       </span>
                     </Link>
                   </li>

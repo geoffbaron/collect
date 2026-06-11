@@ -8,6 +8,37 @@ struct PropertyCapitalAssetsView: View {
     @State private var showNewCapitalAsset = false
 
     var body: some View {
+        VStack(spacing: 0) {
+            if let error = capitalAssetService.error {
+                ErrorBanner(message: error, onDismiss: { capitalAssetService.clearError() })
+                    .padding([.horizontal, .top])
+            }
+            content
+        }
+        .navigationTitle("Capital Assets")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showNewCapitalAsset = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
+        }
+        .sheet(isPresented: $showNewCapitalAsset) {
+            NewCapitalAssetView(
+                propertyID: property.id.uuidString,
+                buildingID: nil,
+                unitID: nil,
+                capitalAssetService: capitalAssetService
+            )
+        }
+        .task { await capitalAssetService.load(propertyID: property.id.uuidString) }
+    }
+
+    @ViewBuilder
+    private var content: some View {
         Group {
             if capitalAssetService.isLoading && capitalAssetService.capitalAssets.isEmpty {
                 ProgressView("Loading assets…")
@@ -32,26 +63,6 @@ struct PropertyCapitalAssetsView: View {
                 }
             }
         }
-        .navigationTitle("Capital Assets")
-        .navigationBarTitleDisplayMode(.large)
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    showNewCapitalAsset = true
-                } label: {
-                    Image(systemName: "plus")
-                }
-            }
-        }
-        .sheet(isPresented: $showNewCapitalAsset) {
-            NewCapitalAssetView(
-                propertyID: property.id.uuidString,
-                buildingID: nil,
-                unitID: nil,
-                capitalAssetService: capitalAssetService
-            )
-        }
-        .task { await capitalAssetService.load(propertyID: property.id.uuidString) }
     }
 }
 

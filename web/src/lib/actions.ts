@@ -153,6 +153,41 @@ export async function updateUnitStatus(
 }
 
 /**
+ * Parses a single CSV line into cell values, honoring double-quoted fields
+ * that may contain commas, newlines, and escaped ("") quote characters.
+ */
+function parseCsvLine(line: string): string[] {
+  const cells: string[] = [];
+  let cell = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (line[i + 1] === '"') {
+          cell += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        cell += ch;
+      }
+    } else if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === ",") {
+      cells.push(cell.trim());
+      cell = "";
+    } else {
+      cell += ch;
+    }
+  }
+  cells.push(cell.trim());
+  return cells;
+}
+
+/**
  * Bulk-creates units from a CSV string with columns:
  * unit_number, floor_number, bedrooms, bathrooms, sqft
  * (header row required; extra columns ignored)
@@ -163,44 +198,66 @@ export async function importUnitsFromCsv(
   csvText: string
 ) {
   const lines = csvText.trim().split(/\r?\n/);
-  if (lines.length < 2) return { ok: false, error: "CSV must have a header row and at least one data row.", count: 0 };
+  if (lines.length < 2) return { ok: false, error: "CSV must have a header row and at least one data row.", count: 0, errors: [] as string[] };
 
-  const header = lines[0].split(",").map((h) => h.trim().toLowerCase());
+  const header = parseCsvLine(lines[0]).map((h) => h.trim().toLowerCase());
   const col = (name: string) => header.indexOf(name);
 
   if (col("unit_number") === -1) {
-    return { ok: false, error: "CSV must have a 'unit_number' column.", count: 0 };
+    return { ok: false, error: "CSV must have a 'unit_number' column.", count: 0, errors: [] as string[] };
   }
 
-  const rows = lines.slice(1).map((line) => {
-    const cells = line.split(",").map((c) => c.trim());
+  const rows: {
+    property_id: string;
+    building_id: string;
+    unit_number: string;
+    floor_number: number | null;
+    bedrooms: number | null;
+    bathrooms: number | null;
+    sqft: number | null;
+  }[] = [];
+  const errors: string[] = [];
+
+  lines.slice(1).forEach((line, i) => {
+    if (!line.trim()) return;
+    const rowNum = i + 2; // account for header row + 1-indexing
+    const cells = parseCsvLine(line);
     const get = (name: string) => {
-      const i = col(name);
-      return i >= 0 ? (cells[i] ?? "") : "";
+      const idx = col(name);
+      return idx >= 0 ? (cells[idx] ?? "").trim() : "";
     };
     const num = (name: string) => {
       const v = parseFloat(get(name));
       return isNaN(v) ? null : v;
     };
-    return {
+
+    const unitNumber = get("unit_number");
+    if (!unitNumber) {
+      errors.push(`Row ${rowNum}: missing unit_number, skipped.`);
+      return;
+    }
+
+    rows.push({
       property_id: propertyId,
       building_id: buildingId,
-      unit_number: get("unit_number"),
+      unit_number: unitNumber,
       floor_number: num("floor_number") != null ? Math.round(num("floor_number")!) : null,
       bedrooms: num("bedrooms"),
       bathrooms: num("bathrooms"),
       sqft: num("sqft") != null ? Math.round(num("sqft")!) : null,
-    };
-  }).filter((r) => r.unit_number.length > 0);
+    });
+  });
 
-  if (rows.length === 0) return { ok: false, error: "No valid rows found in CSV.", count: 0 };
+  if (rows.length === 0) {
+    return { ok: false, error: "No valid rows found in CSV.", count: 0, errors };
+  }
 
   const supabase = createClient();
   const { error } = await supabase.from("units").insert(rows);
-  if (error) return { ok: false, error: error.message, count: 0 };
+  if (error) return { ok: false, error: error.message, count: 0, errors };
 
   revalidatePath(`/dashboard/portfolio/${propertyId}/${buildingId}`);
-  return { ok: true, error: null, count: rows.length };
+  return { ok: true, error: null, count: rows.length, errors };
 }
 
 // ── Inspections ──────────────────────────────────────────────
@@ -306,17 +363,70 @@ export async function createWorkOrder(input: {
 
 export async function updateWorkOrderStatus(id: string, propertyId: string, status: WorkOrderStatus) {
   const supabase = createClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("work_orders")
     .update({
       status,
       completed_at: status === "completed" ? new Date().toISOString() : null,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   revalidatePath(`/dashboard/portfolio/${propertyId}/work-orders`);
   revalidatePath(`/dashboard/portfolio/${propertyId}/work-orders/${id}`);
-  return { ok: !error, error: error?.message };
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) {
+    return { ok: false, error: "You don't have permission to update this work order." };
+  }
+  return { ok: true, error: null };
+}
+
+export async function updateWorkOrder(id: string, propertyId: string, input: {
+  title: string;
+  description?: string;
+  category: WorkOrderCategory;
+  priority: WorkOrderPriority;
+  dueDate?: string | null;
+}) {
+  const title = input.title.trim();
+  if (!title) return { ok: false, error: "Title is required." };
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("work_orders")
+    .update({
+      title,
+      description: input.description ?? "",
+      category: input.category,
+      priority: input.priority,
+      due_date: input.dueDate ?? null,
+    })
+    .eq("id", id)
+    .select("id");
+
+  revalidatePath(`/dashboard/portfolio/${propertyId}/work-orders`);
+  revalidatePath(`/dashboard/portfolio/${propertyId}/work-orders/${id}`);
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) {
+    return { ok: false, error: "You don't have permission to update this work order." };
+  }
+  return { ok: true, error: null };
+}
+
+export async function deleteWorkOrder(id: string, propertyId: string) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("work_orders")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .select("id");
+
+  revalidatePath(`/dashboard/portfolio/${propertyId}/work-orders`);
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) {
+    return { ok: false, error: "You don't have permission to delete this work order." };
+  }
+  return { ok: true, error: null };
 }
 
 // ── Capital Asset Register (Phase 4) ────────────────────────
@@ -373,14 +483,75 @@ export async function createCapitalAsset(input: {
 
 export async function updateCapitalAssetCondition(id: string, propertyId: string, condition: CapitalAssetCondition) {
   const supabase = createClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("capital_assets")
     .update({ condition })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   revalidatePath(`/dashboard/portfolio/${propertyId}/capital-assets`);
   revalidatePath(`/dashboard/portfolio/${propertyId}/capital-assets/${id}`);
-  return { ok: !error, error: error?.message };
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) {
+    return { ok: false, error: "You don't have permission to update this asset." };
+  }
+  return { ok: true, error: null };
+}
+
+export async function updateCapitalAsset(id: string, propertyId: string, input: {
+  name: string;
+  assetType: CapitalAssetType;
+  manufacturer?: string;
+  model?: string;
+  serialNumber?: string;
+  installDate?: string | null;
+  warrantyExpires?: string | null;
+  lastServicedAt?: string | null;
+  notes?: string;
+}) {
+  const name = input.name.trim();
+  if (!name) return { ok: false, error: "Name is required." };
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("capital_assets")
+    .update({
+      name,
+      asset_type: input.assetType,
+      manufacturer: input.manufacturer ?? "",
+      model: input.model ?? "",
+      serial_number: input.serialNumber ?? "",
+      install_date: input.installDate ?? null,
+      warranty_expires: input.warrantyExpires ?? null,
+      last_serviced_at: input.lastServicedAt ?? null,
+      notes: input.notes ?? "",
+    })
+    .eq("id", id)
+    .select("id");
+
+  revalidatePath(`/dashboard/portfolio/${propertyId}/capital-assets`);
+  revalidatePath(`/dashboard/portfolio/${propertyId}/capital-assets/${id}`);
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) {
+    return { ok: false, error: "You don't have permission to update this asset." };
+  }
+  return { ok: true, error: null };
+}
+
+export async function deleteCapitalAsset(id: string, propertyId: string) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("capital_assets")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .select("id");
+
+  revalidatePath(`/dashboard/portfolio/${propertyId}/capital-assets`);
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) {
+    return { ok: false, error: "You don't have permission to delete this asset." };
+  }
+  return { ok: true, error: null };
 }
 
 // ── Preventive Maintenance Schedules (Phase 4) ──────────────
@@ -433,14 +604,67 @@ export async function createMaintenanceSchedule(input: {
 
 export async function updateMaintenanceScheduleActive(id: string, propertyId: string, active: boolean) {
   const supabase = createClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("maintenance_schedules")
     .update({ active })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   revalidatePath(`/dashboard/portfolio/${propertyId}/maintenance-schedules`);
   revalidatePath(`/dashboard/portfolio/${propertyId}/maintenance-schedules/${id}`);
-  return { ok: !error, error: error?.message };
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) {
+    return { ok: false, error: "You don't have permission to update this schedule." };
+  }
+  return { ok: true, error: null };
+}
+
+export async function updateMaintenanceSchedule(id: string, propertyId: string, input: {
+  title: string;
+  description?: string;
+  category: WorkOrderCategory;
+  frequency: MaintenanceFrequency;
+  nextDueDate: string;
+}) {
+  const title = input.title.trim();
+  if (!title) return { ok: false, error: "Title is required." };
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("maintenance_schedules")
+    .update({
+      title,
+      description: input.description ?? "",
+      category: input.category,
+      frequency: input.frequency,
+      next_due_date: input.nextDueDate,
+    })
+    .eq("id", id)
+    .select("id");
+
+  revalidatePath(`/dashboard/portfolio/${propertyId}/maintenance-schedules`);
+  revalidatePath(`/dashboard/portfolio/${propertyId}/maintenance-schedules/${id}`);
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) {
+    return { ok: false, error: "You don't have permission to update this schedule." };
+  }
+  return { ok: true, error: null };
+}
+
+export async function deleteMaintenanceSchedule(id: string, propertyId: string) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("maintenance_schedules")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .select("id");
+
+  revalidatePath(`/dashboard/portfolio/${propertyId}/maintenance-schedules`);
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) {
+    return { ok: false, error: "You don't have permission to delete this schedule." };
+  }
+  return { ok: true, error: null };
 }
 
 type Backup = {

@@ -5,7 +5,9 @@ import {
   MAINTENANCE_FREQUENCY_LABELS,
   WORK_ORDER_CATEGORY_LABELS,
 } from "@/lib/types";
+import { formatDateOnly } from "@/lib/dates";
 import ActiveToggle from "./ActiveToggle";
+import EditMaintenanceScheduleForm from "./EditMaintenanceScheduleForm";
 
 export const dynamic = "force-dynamic";
 
@@ -48,13 +50,15 @@ export default async function MaintenanceScheduleDetailPage({
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <InfoItem label="Category" value={WORK_ORDER_CATEGORY_LABELS[schedule.category]} />
           <InfoItem label="Frequency" value={MAINTENANCE_FREQUENCY_LABELS[schedule.frequency]} />
-          <InfoItem label="Next Due" value={new Date(schedule.next_due_date).toLocaleDateString()} />
+          <InfoItem label="Next Due" value={formatDateOnly(schedule.next_due_date)} />
           {schedule.last_completed_at && (
-            <InfoItem label="Last Completed" value={new Date(schedule.last_completed_at).toLocaleDateString()} />
+            <InfoItem label="Last Completed" value={formatDateOnly(schedule.last_completed_at)} />
           )}
         </dl>
 
         <ActiveToggle scheduleId={schedule.id} propertyId={property.id} active={schedule.active} />
+
+        <EditMaintenanceScheduleForm schedule={schedule} propertyId={property.id} />
       </div>
     </div>
   );

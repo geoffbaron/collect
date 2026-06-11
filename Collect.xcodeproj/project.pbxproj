@@ -39,6 +39,7 @@
 		A10029 /* CollectionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10029 /* CollectionDetailView.swift */; };
 		A10030 /* AssetDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10030 /* AssetDetailView.swift */; };
 		A10031 /* CSVExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10031 /* CSVExporter.swift */; };
+		A3D0AC /* DateOnlyFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3D0AC /* DateOnlyFormatting.swift */; };
 		A10032 /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10032 /* ShareSheet.swift */; };
 		A10033 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10033 /* OnboardingView.swift */; };
 		A10034 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B10034 /* PrivacyInfo.xcprivacy */; };
@@ -77,6 +78,10 @@
 		A360AC /* NewMaintenanceScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B360AC /* NewMaintenanceScheduleView.swift */; };
 		A370AC /* MaintenanceScheduleDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B370AC /* MaintenanceScheduleDetailView.swift */; };
 		A380AC /* PropertyMaintenanceSchedulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B380AC /* PropertyMaintenanceSchedulesView.swift */; };
+		A3C0AC /* ErrorBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3C0AC /* ErrorBanner.swift */; };
+		A390AC /* EditWorkOrderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B390AC /* EditWorkOrderView.swift */; };
+		A3A0AC /* EditCapitalAssetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A0AC /* EditCapitalAssetView.swift */; };
+		A3B0AC /* EditMaintenanceScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B0AC /* EditMaintenanceScheduleView.swift */; };
 		A10063 /* LimitsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10063 /* LimitsService.swift */; };
 		A10064 /* UsageLimits.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10064 /* UsageLimits.swift */; };
 		A10065 /* GroupReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10065 /* GroupReviewView.swift */; };
@@ -125,6 +130,7 @@
 		B10029 /* CollectionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionDetailView.swift; sourceTree = "<group>"; };
 		B10030 /* AssetDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetDetailView.swift; sourceTree = "<group>"; };
 		B10031 /* CSVExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVExporter.swift; sourceTree = "<group>"; };
+		B3D0AC /* DateOnlyFormatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateOnlyFormatting.swift; sourceTree = "<group>"; };
 		B10032 /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		B10033 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		B10034 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -162,6 +168,10 @@
 		B360AC /* NewMaintenanceScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewMaintenanceScheduleView.swift; sourceTree = "<group>"; };
 		B370AC /* MaintenanceScheduleDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaintenanceScheduleDetailView.swift; sourceTree = "<group>"; };
 		B380AC /* PropertyMaintenanceSchedulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyMaintenanceSchedulesView.swift; sourceTree = "<group>"; };
+		B3C0AC /* ErrorBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorBanner.swift; sourceTree = "<group>"; };
+		B390AC /* EditWorkOrderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditWorkOrderView.swift; sourceTree = "<group>"; };
+		B3A0AC /* EditCapitalAssetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditCapitalAssetView.swift; sourceTree = "<group>"; };
+		B3B0AC /* EditMaintenanceScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditMaintenanceScheduleView.swift; sourceTree = "<group>"; };
 		B10063 /* LimitsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitsService.swift; sourceTree = "<group>"; };
 		B10064 /* UsageLimits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageLimits.swift; sourceTree = "<group>"; };
 		B10065 /* GroupReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupReviewView.swift; sourceTree = "<group>"; };
@@ -305,6 +315,7 @@
 			isa = PBXGroup;
 			children = (
 				B10031 /* CSVExporter.swift */,
+				B3D0AC /* DateOnlyFormatting.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -338,6 +349,9 @@
 				B360AC /* NewMaintenanceScheduleView.swift */,
 				B370AC /* MaintenanceScheduleDetailView.swift */,
 				B380AC /* PropertyMaintenanceSchedulesView.swift */,
+				B390AC /* EditWorkOrderView.swift */,
+				B3A0AC /* EditCapitalAssetView.swift */,
+				B3B0AC /* EditMaintenanceScheduleView.swift */,
 			);
 			path = Property;
 			sourceTree = "<group>";
@@ -391,6 +405,7 @@
 				B10028 /* SettingsView.swift */,
 				B10032 /* ShareSheet.swift */,
 				B10033 /* OnboardingView.swift */,
+				B3C0AC /* ErrorBanner.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -520,6 +535,7 @@
 				A10029 /* CollectionDetailView.swift in Sources */,
 				A10030 /* AssetDetailView.swift in Sources */,
 				A10031 /* CSVExporter.swift in Sources */,
+				A3D0AC /* DateOnlyFormatting.swift in Sources */,
 				A10032 /* ShareSheet.swift in Sources */,
 				A10033 /* OnboardingView.swift in Sources */,
 				A10050 /* RoomLayout.swift in Sources */,
@@ -555,6 +571,10 @@
 				A360AC /* NewMaintenanceScheduleView.swift in Sources */,
 				A370AC /* MaintenanceScheduleDetailView.swift in Sources */,
 				A380AC /* PropertyMaintenanceSchedulesView.swift in Sources */,
+				A3C0AC /* ErrorBanner.swift in Sources */,
+				A390AC /* EditWorkOrderView.swift in Sources */,
+				A3A0AC /* EditCapitalAssetView.swift in Sources */,
+				A3B0AC /* EditMaintenanceScheduleView.swift in Sources */,
 				A10063 /* LimitsService.swift in Sources */,
 				A10064 /* UsageLimits.swift in Sources */,
 				A10065 /* GroupReviewView.swift in Sources */,

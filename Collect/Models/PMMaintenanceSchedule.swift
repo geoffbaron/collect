@@ -33,9 +33,20 @@ struct PMMaintenanceSchedule: Identifiable, Codable, Hashable {
         case updatedAt           = "updated_at"
     }
 
+    /// `nextDueDate` is a "YYYY-MM-DD" date with no timezone. Comparing it as a
+    /// UTC-parsed Date against the local start-of-day would mark a schedule
+    /// overdue a day early for users west of UTC, so compare date strings
+    /// (both "YYYY-MM-DD") directly instead.
     var isOverdue: Bool {
-        guard let date = MaintenanceFrequency.dateFormatter.date(from: nextDueDate) else { return false }
-        return active && date < Calendar.current.startOfDay(for: Date())
+        guard active else { return false }
+        return nextDueDate < PMMaintenanceSchedule.todayString()
+    }
+
+    private static func todayString() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = .current
+        return formatter.string(from: Date())
     }
 }
 

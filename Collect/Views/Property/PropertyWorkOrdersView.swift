@@ -8,6 +8,37 @@ struct PropertyWorkOrdersView: View {
     @State private var showNewWorkOrder = false
 
     var body: some View {
+        VStack(spacing: 0) {
+            if let error = workOrderService.error {
+                ErrorBanner(message: error, onDismiss: { workOrderService.clearError() })
+                    .padding([.horizontal, .top])
+            }
+            content
+        }
+        .navigationTitle("Work Orders")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showNewWorkOrder = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
+        }
+        .sheet(isPresented: $showNewWorkOrder) {
+            NewWorkOrderView(
+                propertyID: property.id.uuidString,
+                buildingID: nil,
+                unitID: nil,
+                workOrderService: workOrderService
+            )
+        }
+        .task { await workOrderService.load(propertyID: property.id.uuidString) }
+    }
+
+    @ViewBuilder
+    private var content: some View {
         Group {
             if workOrderService.isLoading && workOrderService.workOrders.isEmpty {
                 ProgressView("Loading work orders…")
@@ -32,26 +63,6 @@ struct PropertyWorkOrdersView: View {
                 }
             }
         }
-        .navigationTitle("Work Orders")
-        .navigationBarTitleDisplayMode(.large)
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    showNewWorkOrder = true
-                } label: {
-                    Image(systemName: "plus")
-                }
-            }
-        }
-        .sheet(isPresented: $showNewWorkOrder) {
-            NewWorkOrderView(
-                propertyID: property.id.uuidString,
-                buildingID: nil,
-                unitID: nil,
-                workOrderService: workOrderService
-            )
-        }
-        .task { await workOrderService.load(propertyID: property.id.uuidString) }
     }
 }
 

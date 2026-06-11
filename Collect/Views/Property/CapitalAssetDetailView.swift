@@ -5,6 +5,9 @@ struct CapitalAssetDetailView: View {
     let capitalAsset: PMCapitalAsset
     let capitalAssetService: CapitalAssetService
 
+    @Environment(\.dismiss) private var dismiss
+    @State private var showEdit = false
+
     private var current: PMCapitalAsset {
         capitalAssetService.capitalAssets.first { $0.id == capitalAsset.id } ?? capitalAsset
     }
@@ -29,13 +32,13 @@ struct CapitalAssetDetailView: View {
                     LabeledContent("Serial Number", value: current.serialNumber)
                 }
                 if let installDate = current.installDate {
-                    LabeledContent("Installed", value: installDate)
+                    LabeledContent("Installed", value: installDate.formattedAsDateOnly)
                 }
                 if let warrantyExpires = current.warrantyExpires {
-                    LabeledContent("Warranty Expires", value: warrantyExpires)
+                    LabeledContent("Warranty Expires", value: warrantyExpires.formattedAsDateOnly)
                 }
                 if let lastServicedAt = current.lastServicedAt {
-                    LabeledContent("Last Serviced", value: lastServicedAt)
+                    LabeledContent("Last Serviced", value: lastServicedAt.formattedAsDateOnly)
                 }
             } header: {
                 Text("Details")
@@ -62,5 +65,13 @@ struct CapitalAssetDetailView: View {
         }
         .navigationTitle("Asset")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button("Edit") { showEdit = true }
+            }
+        }
+        .sheet(isPresented: $showEdit) {
+            EditCapitalAssetView(capitalAsset: current, capitalAssetService: capitalAssetService, onDeleted: { dismiss() })
+        }
     }
 }

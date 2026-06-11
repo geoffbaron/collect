@@ -5,6 +5,9 @@ struct MaintenanceScheduleDetailView: View {
     let schedule: PMMaintenanceSchedule
     let maintenanceScheduleService: MaintenanceScheduleService
 
+    @Environment(\.dismiss) private var dismiss
+    @State private var showEdit = false
+
     private var current: PMMaintenanceSchedule {
         maintenanceScheduleService.schedules.first { $0.id == schedule.id } ?? schedule
     }
@@ -24,9 +27,9 @@ struct MaintenanceScheduleDetailView: View {
                     Label(current.category.displayName, systemImage: current.category.systemImage)
                 }
                 LabeledContent("Frequency", value: current.frequency.displayName)
-                LabeledContent("Next Due", value: current.nextDueDate)
+                LabeledContent("Next Due", value: current.nextDueDate.formattedAsDateOnly)
                 if let lastCompleted = current.lastCompletedAt {
-                    LabeledContent("Last Completed", value: lastCompleted)
+                    LabeledContent("Last Completed", value: lastCompleted.formattedAsDateOnly)
                 }
             } header: {
                 Text("Schedule")
@@ -41,5 +44,13 @@ struct MaintenanceScheduleDetailView: View {
         }
         .navigationTitle("Schedule")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button("Edit") { showEdit = true }
+            }
+        }
+        .sheet(isPresented: $showEdit) {
+            EditMaintenanceScheduleView(schedule: current, maintenanceScheduleService: maintenanceScheduleService, onDeleted: { dismiss() })
+        }
     }
 }

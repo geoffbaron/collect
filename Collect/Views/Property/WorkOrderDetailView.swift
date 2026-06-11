@@ -5,6 +5,9 @@ struct WorkOrderDetailView: View {
     let workOrder: PMWorkOrder
     let workOrderService: WorkOrderService
 
+    @Environment(\.dismiss) private var dismiss
+    @State private var showEdit = false
+
     private var current: PMWorkOrder {
         workOrderService.workOrders.first { $0.id == workOrder.id } ?? workOrder
     }
@@ -28,7 +31,7 @@ struct WorkOrderDetailView: View {
                         .foregroundStyle(current.priority.color)
                 }
                 if let dueDate = current.dueDate {
-                    LabeledContent("Due", value: dueDate)
+                    LabeledContent("Due", value: dueDate.formattedAsDateOnly)
                 }
             } header: {
                 Text("Details")
@@ -56,5 +59,13 @@ struct WorkOrderDetailView: View {
         }
         .navigationTitle("Work Order")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button("Edit") { showEdit = true }
+            }
+        }
+        .sheet(isPresented: $showEdit) {
+            EditWorkOrderView(workOrder: current, workOrderService: workOrderService, onDeleted: { dismiss() })
+        }
     }
 }

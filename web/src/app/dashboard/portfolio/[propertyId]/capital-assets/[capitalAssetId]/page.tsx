@@ -4,7 +4,9 @@ import { getAccount, getCapitalAsset, getProperties } from "@/lib/data";
 import {
   CAPITAL_ASSET_TYPE_LABELS,
 } from "@/lib/types";
+import { formatDateOnly } from "@/lib/dates";
 import ConditionSelect from "./ConditionSelect";
+import EditCapitalAssetForm from "./EditCapitalAssetForm";
 
 export const dynamic = "force-dynamic";
 
@@ -50,17 +52,19 @@ export default async function CapitalAssetDetailPage({
           {capitalAsset.model && <InfoItem label="Model" value={capitalAsset.model} />}
           {capitalAsset.serial_number && <InfoItem label="Serial Number" value={capitalAsset.serial_number} />}
           {capitalAsset.install_date && (
-            <InfoItem label="Installed" value={new Date(capitalAsset.install_date).toLocaleDateString()} />
+            <InfoItem label="Installed" value={formatDateOnly(capitalAsset.install_date)} />
           )}
           {capitalAsset.warranty_expires && (
-            <InfoItem label="Warranty Expires" value={new Date(capitalAsset.warranty_expires).toLocaleDateString()} />
+            <InfoItem label="Warranty Expires" value={formatDateOnly(capitalAsset.warranty_expires)} />
           )}
           {capitalAsset.last_serviced_at && (
-            <InfoItem label="Last Serviced" value={new Date(capitalAsset.last_serviced_at).toLocaleDateString()} />
+            <InfoItem label="Last Serviced" value={formatDateOnly(capitalAsset.last_serviced_at)} />
           )}
         </dl>
 
         <ConditionSelect capitalAssetId={capitalAsset.id} propertyId={property.id} condition={capitalAsset.condition} />
+
+        <EditCapitalAssetForm capitalAsset={capitalAsset} propertyId={property.id} />
       </div>
     </div>
   );

@@ -10,6 +10,10 @@ final class InspectionService: ObservableObject {
 
     private let db = SupabaseManager.shared.client
 
+    func clearError() {
+        error = nil
+    }
+
     var lastCompletedMoveIn: PMInspection? {
         inspections.first {
             $0.inspectionType == .moveIn && $0.status == .completed

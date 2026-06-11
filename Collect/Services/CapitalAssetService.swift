@@ -11,6 +11,10 @@ final class CapitalAssetService: ObservableObject {
 
     private let db = SupabaseManager.shared.client
 
+    func clearError() {
+        error = nil
+    }
+
     /// Loads every capital asset for a property (across all units/buildings).
     func load(propertyID: String) async {
         isLoading = true
@@ -99,15 +103,104 @@ final class CapitalAssetService: ObservableObject {
         let previous = capitalAssets[idx].condition
         capitalAssets[idx].condition = condition
 
+        struct RowID: Decodable { let id: String }
+
         do {
-            try await db
+            let updated: [RowID] = try await db
                 .from("capital_assets")
                 .update(["condition": condition.rawValue])
                 .eq("id", value: asset.id)
+                .select("id")
                 .execute()
+                .value
+            if updated.isEmpty {
+                capitalAssets[idx].condition = previous
+                self.error = "You don't have permission to update this asset."
+            }
         } catch {
             capitalAssets[idx].condition = previous
             self.error = error.localizedDescription
+        }
+    }
+
+    func update(
+        _ asset: PMCapitalAsset,
+        name: String,
+        assetType: CapitalAssetType,
+        manufacturer: String,
+        model: String,
+        serialNumber: String,
+        installDate: String?,
+        warrantyExpires: String?,
+        lastServicedAt: String?,
+        notes: String
+    ) async -> Bool {
+        guard let idx = capitalAssets.firstIndex(where: { $0.id == asset.id }) else { return false }
+        let previous = capitalAssets[idx]
+        capitalAssets[idx].name = name
+        capitalAssets[idx].assetType = assetType
+        capitalAssets[idx].manufacturer = manufacturer
+        capitalAssets[idx].model = model
+        capitalAssets[idx].serialNumber = serialNumber
+        capitalAssets[idx].installDate = installDate
+        capitalAssets[idx].warrantyExpires = warrantyExpires
+        capitalAssets[idx].lastServicedAt = lastServicedAt
+        capitalAssets[idx].notes = notes
+
+        struct RowID: Decodable { let id: String }
+
+        do {
+            let updated: [RowID] = try await db
+                .from("capital_assets")
+                .update([
+                    "name": name,
+                    "asset_type": assetType.rawValue,
+                    "manufacturer": manufacturer,
+                    "model": model,
+                    "serial_number": serialNumber,
+                    "install_date": installDate,
+                    "warranty_expires": warrantyExpires,
+                    "last_serviced_at": lastServicedAt,
+                    "notes": notes,
+                ] as [String: String?])
+                .eq("id", value: asset.id)
+                .select("id")
+                .execute()
+                .value
+            if updated.isEmpty {
+                capitalAssets[idx] = previous
+                self.error = "You don't have permission to update this asset."
+                return false
+            }
+            return true
+        } catch {
+            capitalAssets[idx] = previous
+            self.error = error.localizedDescription
+            return false
+        }
+    }
+
+    func delete(_ asset: PMCapitalAsset) async -> Bool {
+        struct RowID: Decodable { let id: String }
+
+        do {
+            let iso = ISO8601DateFormatter().string(from: Date())
+            let updated: [RowID] = try await db
+                .from("capital_assets")
+                .update(["deleted_at": iso])
+                .eq("id", value: asset.id)
+                .select("id")
+                .execute()
+                .value
+            if updated.isEmpty {
+                self.error = "You don't have permission to delete this asset."
+                return false
+            }
+            capitalAssets.removeAll { $0.id == asset.id }
+            return true
+        } catch {
+            self.error = error.localizedDescription
+            return false
         }
     }
 }
