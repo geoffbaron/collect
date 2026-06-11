@@ -25,6 +25,13 @@ struct PMPropertyDetailView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 NavigationLink {
+                    PropertyCapitalAssetsView(property: property)
+                } label: {
+                    Image(systemName: "cube.box")
+                }
+            }
+            ToolbarItem(placement: .primaryAction) {
+                NavigationLink {
                     PropertyWorkOrdersView(property: property)
                 } label: {
                     Image(systemName: "wrench.and.screwdriver")
