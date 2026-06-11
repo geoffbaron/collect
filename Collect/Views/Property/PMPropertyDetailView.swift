@@ -24,6 +24,13 @@ struct PMPropertyDetailView: View {
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
+                NavigationLink {
+                    PropertyWorkOrdersView(property: property)
+                } label: {
+                    Image(systemName: "wrench.and.screwdriver")
+                }
+            }
+            ToolbarItem(placement: .primaryAction) {
                 Button {
                     showAddBuilding = true
                 } label: {

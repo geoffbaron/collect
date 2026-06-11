@@ -62,6 +62,11 @@
 		A270AC /* PMInspection.swift in Sources */        = {isa = PBXBuildFile; fileRef = B270AC /* PMInspection.swift */; };
 		A280AC /* InspectionService.swift in Sources */   = {isa = PBXBuildFile; fileRef = B280AC /* InspectionService.swift */; };
 		A290AC /* InspectionFlowView.swift in Sources */  = {isa = PBXBuildFile; fileRef = B290AC /* InspectionFlowView.swift */; };
+		A2A0AC /* PMWorkOrder.swift in Sources */         = {isa = PBXBuildFile; fileRef = B2A0AC /* PMWorkOrder.swift */; };
+		A2B0AC /* WorkOrderService.swift in Sources */    = {isa = PBXBuildFile; fileRef = B2B0AC /* WorkOrderService.swift */; };
+		A2C0AC /* NewWorkOrderView.swift in Sources */    = {isa = PBXBuildFile; fileRef = B2C0AC /* NewWorkOrderView.swift */; };
+		A2D0AC /* WorkOrderDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D0AC /* WorkOrderDetailView.swift */; };
+		A2E0AC /* PropertyWorkOrdersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2E0AC /* PropertyWorkOrdersView.swift */; };
 		A10063 /* LimitsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10063 /* LimitsService.swift */; };
 		A10064 /* UsageLimits.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10064 /* UsageLimits.swift */; };
 		A10065 /* GroupReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10065 /* GroupReviewView.swift */; };
@@ -132,6 +137,11 @@
 		B270AC /* PMInspection.swift */        = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PMInspection.swift;        sourceTree = "<group>"; };
 		B280AC /* InspectionService.swift */   = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectionService.swift;   sourceTree = "<group>"; };
 		B290AC /* InspectionFlowView.swift */  = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectionFlowView.swift;  sourceTree = "<group>"; };
+		B2A0AC /* PMWorkOrder.swift */          = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PMWorkOrder.swift;          sourceTree = "<group>"; };
+		B2B0AC /* WorkOrderService.swift */     = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkOrderService.swift;     sourceTree = "<group>"; };
+		B2C0AC /* NewWorkOrderView.swift */     = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewWorkOrderView.swift;     sourceTree = "<group>"; };
+		B2D0AC /* WorkOrderDetailView.swift */  = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkOrderDetailView.swift;  sourceTree = "<group>"; };
+		B2E0AC /* PropertyWorkOrdersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyWorkOrdersView.swift; sourceTree = "<group>"; };
 		B10063 /* LimitsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitsService.swift; sourceTree = "<group>"; };
 		B10064 /* UsageLimits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageLimits.swift; sourceTree = "<group>"; };
 		B10065 /* GroupReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupReviewView.swift; sourceTree = "<group>"; };
@@ -197,6 +207,7 @@
 				B200AC /* PMBuilding.swift */,
 				B210AC /* PMUnit.swift */,
 				B270AC /* PMInspection.swift */,
+				B2A0AC /* PMWorkOrder.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -214,6 +225,7 @@
 				B220AC /* BuildingService.swift */,
 				B230AC /* UnitService.swift */,
 				B280AC /* InspectionService.swift */,
+				B2B0AC /* WorkOrderService.swift */,
 				B10063 /* LimitsService.swift */,
 				B10066 /* SyncService.swift */,
 				B10067 /* CloudRepository.swift */,
@@ -293,6 +305,9 @@
 				B250AC /* BuildingDetailView.swift */,
 				B260AC /* UnitDetailView.swift */,
 				B290AC /* InspectionFlowView.swift */,
+				B2C0AC /* NewWorkOrderView.swift */,
+				B2D0AC /* WorkOrderDetailView.swift */,
+				B2E0AC /* PropertyWorkOrdersView.swift */,
 			);
 			path = Property;
 			sourceTree = "<group>";
@@ -495,6 +510,11 @@
 				A270AC /* PMInspection.swift in Sources */,
 				A280AC /* InspectionService.swift in Sources */,
 				A290AC /* InspectionFlowView.swift in Sources */,
+				A2A0AC /* PMWorkOrder.swift in Sources */,
+				A2B0AC /* WorkOrderService.swift in Sources */,
+				A2C0AC /* NewWorkOrderView.swift in Sources */,
+				A2D0AC /* WorkOrderDetailView.swift in Sources */,
+				A2E0AC /* PropertyWorkOrdersView.swift in Sources */,
 				A10063 /* LimitsService.swift in Sources */,
 				A10064 /* UsageLimits.swift in Sources */,
 				A10065 /* GroupReviewView.swift in Sources */,

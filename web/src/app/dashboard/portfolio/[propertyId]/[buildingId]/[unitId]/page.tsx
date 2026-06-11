@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAccount, getBuildings, getInspections, getProperties, getUnits } from "@/lib/data";
-import { INSPECTION_STATUS_LABELS, INSPECTION_TYPE_LABELS, LEASE_STATUS_LABELS, TURN_STATUS_LABELS } from "@/lib/types";
+import { getAccount, getBuildings, getInspections, getProperties, getUnits, getWorkOrders } from "@/lib/data";
+import { INSPECTION_STATUS_LABELS, INSPECTION_TYPE_LABELS, LEASE_STATUS_LABELS, TURN_STATUS_LABELS, WORK_ORDER_CATEGORY_LABELS, WORK_ORDER_STATUS_LABELS } from "@/lib/types";
 import StartInspectionForm from "./StartInspectionForm";
 
 export const dynamic = "force-dynamic";
@@ -11,11 +11,12 @@ export default async function UnitDetailPage({
 }: {
   params: { propertyId: string; buildingId: string; unitId: string };
 }) {
-  const [properties, buildings, units, inspections, account] = await Promise.all([
+  const [properties, buildings, units, inspections, workOrders, account] = await Promise.all([
     getProperties(),
     getBuildings(params.propertyId),
     getUnits({ buildingId: params.buildingId }),
     getInspections(params.unitId),
+    getWorkOrders({ propertyId: params.propertyId, unitId: params.unitId }),
     getAccount(),
   ]);
 
@@ -120,6 +121,48 @@ export default async function UnitDetailPage({
         buildingId={building.id}
         lastMoveInId={lastMoveIn?.id ?? null}
       />
+
+      {/* Work orders */}
+      <div className="card">
+        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
+          <span className="font-semibold text-slate-900">Work Orders</span>
+          <Link href={`/dashboard/portfolio/${property.id}/work-orders`} className="text-sm text-brand hover:underline">
+            View all
+          </Link>
+        </div>
+        {workOrders.length === 0 ? (
+          <div className="px-5 py-6 text-center text-slate-500">No work orders for this unit yet.</div>
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {workOrders.map((wo) => (
+              <li key={wo.id}>
+                <Link
+                  href={`/dashboard/portfolio/${property.id}/work-orders/${wo.id}`}
+                  className="flex items-center justify-between px-5 py-4 hover:bg-slate-50"
+                >
+                  <div>
+                    <div className="font-medium text-slate-900">{wo.title}</div>
+                    <div className="text-sm text-slate-500">{WORK_ORDER_CATEGORY_LABELS[wo.category]}</div>
+                  </div>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                      wo.status === "completed"
+                        ? "bg-green-100 text-green-700"
+                        : wo.status === "in_progress"
+                        ? "bg-blue-100 text-blue-700"
+                        : wo.status === "open"
+                        ? "bg-orange-100 text-orange-700"
+                        : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {WORK_ORDER_STATUS_LABELS[wo.status]}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
