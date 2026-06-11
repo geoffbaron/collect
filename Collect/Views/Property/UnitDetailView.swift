@@ -11,6 +11,9 @@ struct UnitDetailView: View {
     @State private var showTypeSheet = false
     @State private var selectedType: InspectionTypeEnum = .moveIn
 
+    @StateObject private var workOrderService = WorkOrderService()
+    @State private var showNewWorkOrder = false
+
     var body: some View {
         List {
             // Unit info
@@ -89,6 +92,33 @@ struct UnitDetailView: View {
                 }
             }
 
+            // Work orders
+            Section {
+                if workOrderService.isLoading {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .listRowBackground(Color.clear)
+                } else if workOrderService.workOrders.isEmpty {
+                    Text("No work orders yet.")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(workOrderService.workOrders) { workOrder in
+                        NavigationLink {
+                            WorkOrderDetailView(workOrder: workOrder, workOrderService: workOrderService)
+                        } label: {
+                            WorkOrderRow(workOrder: workOrder)
+                        }
+                    }
+                }
+            } header: {
+                HStack {
+                    Text("Work Orders")
+                    Spacer()
+                    Button("New") { showNewWorkOrder = true }
+                        .font(.caption.weight(.medium))
+                }
+            }
+
             if !unit.notes.isEmpty {
                 Section("Notes") {
                     Text(unit.notes).foregroundStyle(.secondary)
@@ -97,7 +127,10 @@ struct UnitDetailView: View {
         }
         .navigationTitle("Unit \(unit.unitNumber)")
         .navigationBarTitleDisplayMode(.large)
-        .task { await inspectionService.load(for: unit.id) }
+        .task {
+            await inspectionService.load(for: unit.id)
+            await workOrderService.load(unitID: unit.id)
+        }
         .sheet(isPresented: $showInspectionFlow) {
             if let inspection = activeInspection {
                 InspectionFlowView(
@@ -106,6 +139,14 @@ struct UnitDetailView: View {
                     inspectionService: inspectionService
                 )
             }
+        }
+        .sheet(isPresented: $showNewWorkOrder) {
+            NewWorkOrderView(
+                propertyID: unit.propertyID,
+                buildingID: unit.buildingID,
+                unitID: unit.id,
+                workOrderService: workOrderService
+            )
         }
         .confirmationDialog("Inspection Type", isPresented: $showTypeSheet, titleVisibility: .visible) {
             ForEach(InspectionTypeEnum.allCases, id: \.self) { type in

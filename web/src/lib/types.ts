@@ -153,6 +153,69 @@ export const INSPECTION_STATUS_LABELS: Record<InspectionStatus, string> = {
   cancelled:   "Cancelled",
 };
 
+// ── Work Orders (Phase 4) ───────────────────────────────────
+
+export type WorkOrderCategory =
+  | "plumbing"
+  | "electrical"
+  | "hvac"
+  | "appliance"
+  | "structural"
+  | "pest"
+  | "safety"
+  | "cosmetic"
+  | "other";
+export type WorkOrderPriority = "low" | "medium" | "high" | "urgent";
+export type WorkOrderStatus = "open" | "in_progress" | "completed" | "cancelled";
+
+export type WorkOrder = {
+  id: string;
+  account_id: string;
+  property_id: string;
+  building_id: string | null;
+  unit_id: string | null;
+  common_area_id: string | null;
+  title: string;
+  description: string;
+  category: WorkOrderCategory;
+  priority: WorkOrderPriority;
+  status: WorkOrderStatus;
+  assigned_to: string | null;
+  reported_by: string | null;
+  due_date: string | null;
+  completed_at: string | null;
+  source_inspection_id: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
+export const WORK_ORDER_CATEGORY_LABELS: Record<WorkOrderCategory, string> = {
+  plumbing: "Plumbing",
+  electrical: "Electrical",
+  hvac: "HVAC",
+  appliance: "Appliance",
+  structural: "Structural",
+  pest: "Pest Control",
+  safety: "Safety",
+  cosmetic: "Cosmetic",
+  other: "Other",
+};
+
+export const WORK_ORDER_PRIORITY_LABELS: Record<WorkOrderPriority, string> = {
+  low: "Low",
+  medium: "Medium",
+  high: "High",
+  urgent: "Urgent",
+};
+
+export const WORK_ORDER_STATUS_LABELS: Record<WorkOrderStatus, string> = {
+  open: "Open",
+  in_progress: "In Progress",
+  completed: "Completed",
+  cancelled: "Cancelled",
+};
+
 export const LEASE_STATUS_LABELS: Record<LeaseStatus, string> = {
   vacant: "Vacant",
   occupied: "Occupied",

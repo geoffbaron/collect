@@ -56,6 +56,9 @@ export default async function PropertyPortfolioPage({
             <p className="text-slate-500">{property.address}</p>
           )}
         </div>
+        <Link href={`/dashboard/portfolio/${property.id}/work-orders`} className="btn-ghost">
+          Work Orders
+        </Link>
       </div>
 
       <div className="card">

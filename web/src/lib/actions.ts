@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import type { InspectionType, LeaseStatus, ProductMode, TurnStatus } from "@/lib/types";
+import type { InspectionType, LeaseStatus, ProductMode, TurnStatus, WorkOrderCategory, WorkOrderPriority, WorkOrderStatus } from "@/lib/types";
 
 /**
  * Switches the signed-in account between the homeowner and property-manager
@@ -253,6 +253,69 @@ export async function completeInspection(id: string, unitId: string) {
   if (unit?.property_id && unit?.building_id) {
     revalidatePath(`/dashboard/portfolio/${unit.property_id}/${unit.building_id}/${unitId}`);
   }
+  return { ok: !error, error: error?.message };
+}
+
+// ── Work Orders (Phase 4) ───────────────────────────────────
+
+export async function createWorkOrder(input: {
+  propertyId: string;
+  buildingId?: string | null;
+  unitId?: string | null;
+  commonAreaId?: string | null;
+  title: string;
+  description?: string;
+  category: WorkOrderCategory;
+  priority: WorkOrderPriority;
+  dueDate?: string | null;
+}) {
+  const title = input.title.trim();
+  if (!title) return { ok: false, error: "Title is required.", workOrder: null };
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("work_orders")
+    .insert({
+      property_id: input.propertyId,
+      building_id: input.buildingId ?? null,
+      unit_id: input.unitId ?? null,
+      common_area_id: input.commonAreaId ?? null,
+      title,
+      description: input.description ?? "",
+      category: input.category,
+      priority: input.priority,
+      due_date: input.dueDate ?? null,
+    })
+    .select()
+    .single();
+  if (error) return { ok: false, error: error.message, workOrder: null };
+
+  revalidatePath(`/dashboard/portfolio/${input.propertyId}/work-orders`);
+  if (input.unitId) {
+    const { data: unit } = await supabase
+      .from("units")
+      .select("property_id, building_id")
+      .eq("id", input.unitId)
+      .maybeSingle();
+    if (unit?.property_id && unit?.building_id) {
+      revalidatePath(`/dashboard/portfolio/${unit.property_id}/${unit.building_id}/${input.unitId}`);
+    }
+  }
+  return { ok: true, error: null, workOrder: data };
+}
+
+export async function updateWorkOrderStatus(id: string, propertyId: string, status: WorkOrderStatus) {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("work_orders")
+    .update({
+      status,
+      completed_at: status === "completed" ? new Date().toISOString() : null,
+    })
+    .eq("id", id);
+
+  revalidatePath(`/dashboard/portfolio/${propertyId}/work-orders`);
+  revalidatePath(`/dashboard/portfolio/${propertyId}/work-orders/${id}`);
   return { ok: !error, error: error?.message };
 }
 
