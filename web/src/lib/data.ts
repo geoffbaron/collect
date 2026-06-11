@@ -285,6 +285,50 @@ export async function getMaintenanceSchedule(id: string): Promise<MaintenanceSch
   return (data as MaintenanceSchedule) ?? null;
 }
 
+// ── Portfolio-wide dashboard queries (Phase 4) ──────────────
+
+/** Open or in-progress work orders across every property in the account. */
+export async function getOpenWorkOrders(): Promise<WorkOrder[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("work_orders")
+    .select("*")
+    .in("status", ["open", "in_progress"])
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
+  return (data ?? []) as WorkOrder[];
+}
+
+/** Active maintenance schedules whose next due date has passed, across every property. */
+export async function getOverdueMaintenanceSchedules(): Promise<MaintenanceSchedule[]> {
+  const supabase = createClient();
+  const today = new Date().toISOString().slice(0, 10);
+  const { data } = await supabase
+    .from("maintenance_schedules")
+    .select("*")
+    .eq("active", true)
+    .lte("next_due_date", today)
+    .is("deleted_at", null)
+    .order("next_due_date", { ascending: true });
+  return (data ?? []) as MaintenanceSchedule[];
+}
+
+/** Vacancy summary across every unit in the account's portfolio. */
+export async function getPortfolioVacancySummary(): Promise<{ total: number; vacant: number; occupied: number; notice: number }> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("units")
+    .select("lease_status")
+    .is("deleted_at", null);
+  const rows = data ?? [];
+  return {
+    total: rows.length,
+    vacant: rows.filter((r: any) => r.lease_status === "vacant").length,
+    occupied: rows.filter((r: any) => r.lease_status === "occupied").length,
+    notice: rows.filter((r: any) => r.lease_status === "notice").length,
+  };
+}
+
 /**
  * For a move_out inspection, compute the condition diff against the baseline
  * move_in inspection. Returns an array of rooms, each with per-item comparisons.

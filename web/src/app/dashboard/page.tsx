@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { getAccount, getAssetsWithLocation, getBuildings, getProperties } from "@/lib/data";
+import { getAccount, getAssetsWithLocation, getBuildings, getOpenWorkOrders, getOverdueMaintenanceSchedules, getPortfolioVacancySummary, getProperties } from "@/lib/data";
+import { WORK_ORDER_PRIORITY_LABELS } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -16,17 +17,28 @@ export default async function DashboardPage() {
 
   // For PM mode, fetch building counts per property in parallel
   const buildingCountMap = new Map<string, number>();
+  let openWorkOrders: Awaited<ReturnType<typeof getOpenWorkOrders>> = [];
+  let overdueMaintenance: Awaited<ReturnType<typeof getOverdueMaintenanceSchedules>> = [];
+  let vacancy: Awaited<ReturnType<typeof getPortfolioVacancySummary>> = { total: 0, vacant: 0, occupied: 0, notice: 0 };
   if (isPM && properties.length > 0) {
-    const buildingArrays = await Promise.all(properties.map((p) => getBuildings(p.id)));
+    const [buildingArrays, openWO, overdueMS, vacancySummary] = await Promise.all([
+      Promise.all(properties.map((p) => getBuildings(p.id))),
+      getOpenWorkOrders(),
+      getOverdueMaintenanceSchedules(),
+      getPortfolioVacancySummary(),
+    ]);
     properties.forEach((p, i) => buildingCountMap.set(p.id, buildingArrays[i].length));
+    openWorkOrders = openWO;
+    overdueMaintenance = overdueMS;
+    vacancy = vacancySummary;
   }
+  const propertyNameById = new Map(properties.map((p) => [p.id, p.name]));
   const totalValue = assets.reduce((s, a) => s + (a.estimated_value ?? 0) * (a.quantity ?? 1), 0);
   const activeListings = assets.filter(
     (a) => a.listing_status === "ready" || a.listing_status === "listed" || a.listing_status === "pending"
   ).length;
   const sold = assets.filter((a) => a.listing_status === "sold");
   const soldValue = sold.reduce((s, a) => s + (a.sold_price ?? 0), 0);
-  const confirmed = assets.filter((a) => a.is_confirmed).length;
 
   // Group item counts per property name for the property list.
   const countByProperty = new Map<string, number>();
@@ -35,14 +47,14 @@ export default async function DashboardPage() {
     countByProperty.set(key, (countByProperty.get(key) ?? 0) + 1);
   }
 
-  // Property managers care about coverage across the portfolio; homeowners
-  // about resale. Same underlying data, different lens.
+  // Property managers care about operational health across the portfolio;
+  // homeowners about resale. Same underlying data, different lens.
   const stats = isPM
     ? [
-        { label: "Items", value: assets.length.toLocaleString() },
-        { label: "Estimated value", value: fmt(totalValue) },
         { label: "Properties", value: properties.length.toLocaleString() },
-        { label: "Confirmed", value: confirmed.toLocaleString() },
+        { label: "Vacant units", value: `${vacancy.vacant} / ${vacancy.total}` },
+        { label: "Open work orders", value: openWorkOrders.length.toLocaleString() },
+        { label: "Overdue maintenance", value: overdueMaintenance.length.toLocaleString() },
       ]
     : [
         { label: "Items", value: assets.length.toLocaleString() },
@@ -75,6 +87,66 @@ export default async function DashboardPage() {
           </div>
         ))}
       </div>
+
+      {isPM && (openWorkOrders.length > 0 || overdueMaintenance.length > 0) && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="card">
+            <div className="border-b border-slate-200 px-5 py-3 font-semibold text-slate-900">
+              Open Work Orders ({openWorkOrders.length})
+            </div>
+            {openWorkOrders.length === 0 ? (
+              <div className="px-5 py-6 text-center text-slate-500">Nothing open across your portfolio.</div>
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {openWorkOrders.slice(0, 5).map((wo) => (
+                  <li key={wo.id}>
+                    <Link
+                      href={`/dashboard/portfolio/${wo.property_id}/work-orders/${wo.id}`}
+                      className="flex items-center justify-between px-5 py-4 hover:bg-slate-50"
+                    >
+                      <div>
+                        <div className="font-medium text-slate-900">{wo.title}</div>
+                        <div className="text-sm text-slate-500">{propertyNameById.get(wo.property_id) ?? "Unknown property"}</div>
+                      </div>
+                      <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
+                        {WORK_ORDER_PRIORITY_LABELS[wo.priority]}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="card">
+            <div className="border-b border-slate-200 px-5 py-3 font-semibold text-slate-900">
+              Overdue Maintenance ({overdueMaintenance.length})
+            </div>
+            {overdueMaintenance.length === 0 ? (
+              <div className="px-5 py-6 text-center text-slate-500">Nothing overdue across your portfolio.</div>
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {overdueMaintenance.slice(0, 5).map((schedule) => (
+                  <li key={schedule.id}>
+                    <Link
+                      href={`/dashboard/portfolio/${schedule.property_id}/maintenance-schedules/${schedule.id}`}
+                      className="flex items-center justify-between px-5 py-4 hover:bg-slate-50"
+                    >
+                      <div>
+                        <div className="font-medium text-slate-900">{schedule.title}</div>
+                        <div className="text-sm text-slate-500">{propertyNameById.get(schedule.property_id) ?? "Unknown property"}</div>
+                      </div>
+                      <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                        Due {new Date(schedule.next_due_date).toLocaleDateString()}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
 
       {assets.length === 0 ? (
         <div className="card p-10 text-center">
