@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import type { InspectionType, LeaseStatus, ProductMode, TurnStatus, WorkOrderCategory, WorkOrderPriority, WorkOrderStatus } from "@/lib/types";
+import type { CapitalAssetCondition, CapitalAssetType, InspectionType, LeaseStatus, ProductMode, TurnStatus, WorkOrderCategory, WorkOrderPriority, WorkOrderStatus } from "@/lib/types";
 
 /**
  * Switches the signed-in account between the homeowner and property-manager
@@ -316,6 +316,70 @@ export async function updateWorkOrderStatus(id: string, propertyId: string, stat
 
   revalidatePath(`/dashboard/portfolio/${propertyId}/work-orders`);
   revalidatePath(`/dashboard/portfolio/${propertyId}/work-orders/${id}`);
+  return { ok: !error, error: error?.message };
+}
+
+// ── Capital Asset Register (Phase 4) ────────────────────────
+
+export async function createCapitalAsset(input: {
+  propertyId: string;
+  buildingId?: string | null;
+  unitId?: string | null;
+  commonAreaId?: string | null;
+  name: string;
+  assetType: CapitalAssetType;
+  manufacturer?: string;
+  model?: string;
+  serialNumber?: string;
+  installDate?: string | null;
+  condition?: CapitalAssetCondition;
+}) {
+  const name = input.name.trim();
+  if (!name) return { ok: false, error: "Name is required.", capitalAsset: null };
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("capital_assets")
+    .insert({
+      property_id: input.propertyId,
+      building_id: input.buildingId ?? null,
+      unit_id: input.unitId ?? null,
+      common_area_id: input.commonAreaId ?? null,
+      name,
+      asset_type: input.assetType,
+      manufacturer: input.manufacturer ?? "",
+      model: input.model ?? "",
+      serial_number: input.serialNumber ?? "",
+      install_date: input.installDate ?? null,
+      condition: input.condition ?? "good",
+    })
+    .select()
+    .single();
+  if (error) return { ok: false, error: error.message, capitalAsset: null };
+
+  revalidatePath(`/dashboard/portfolio/${input.propertyId}/capital-assets`);
+  if (input.unitId) {
+    const { data: unit } = await supabase
+      .from("units")
+      .select("property_id, building_id")
+      .eq("id", input.unitId)
+      .maybeSingle();
+    if (unit?.property_id && unit?.building_id) {
+      revalidatePath(`/dashboard/portfolio/${unit.property_id}/${unit.building_id}/${input.unitId}`);
+    }
+  }
+  return { ok: true, error: null, capitalAsset: data };
+}
+
+export async function updateCapitalAssetCondition(id: string, propertyId: string, condition: CapitalAssetCondition) {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("capital_assets")
+    .update({ condition })
+    .eq("id", id);
+
+  revalidatePath(`/dashboard/portfolio/${propertyId}/capital-assets`);
+  revalidatePath(`/dashboard/portfolio/${propertyId}/capital-assets/${id}`);
   return { ok: !error, error: error?.message };
 }
 

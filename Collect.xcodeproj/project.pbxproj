@@ -67,6 +67,11 @@
 		A2C0AC /* NewWorkOrderView.swift in Sources */    = {isa = PBXBuildFile; fileRef = B2C0AC /* NewWorkOrderView.swift */; };
 		A2D0AC /* WorkOrderDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D0AC /* WorkOrderDetailView.swift */; };
 		A2E0AC /* PropertyWorkOrdersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2E0AC /* PropertyWorkOrdersView.swift */; };
+		A2F0AC /* PMCapitalAsset.swift in Sources */      = {isa = PBXBuildFile; fileRef = B2F0AC /* PMCapitalAsset.swift */; };
+		A300AC /* CapitalAssetService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B300AC /* CapitalAssetService.swift */; };
+		A310AC /* NewCapitalAssetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B310AC /* NewCapitalAssetView.swift */; };
+		A320AC /* CapitalAssetDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B320AC /* CapitalAssetDetailView.swift */; };
+		A330AC /* PropertyCapitalAssetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B330AC /* PropertyCapitalAssetsView.swift */; };
 		A10063 /* LimitsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10063 /* LimitsService.swift */; };
 		A10064 /* UsageLimits.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10064 /* UsageLimits.swift */; };
 		A10065 /* GroupReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10065 /* GroupReviewView.swift */; };
@@ -142,6 +147,11 @@
 		B2C0AC /* NewWorkOrderView.swift */     = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewWorkOrderView.swift;     sourceTree = "<group>"; };
 		B2D0AC /* WorkOrderDetailView.swift */  = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkOrderDetailView.swift;  sourceTree = "<group>"; };
 		B2E0AC /* PropertyWorkOrdersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyWorkOrdersView.swift; sourceTree = "<group>"; };
+		B2F0AC /* PMCapitalAsset.swift */       = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PMCapitalAsset.swift;       sourceTree = "<group>"; };
+		B300AC /* CapitalAssetService.swift */  = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapitalAssetService.swift;  sourceTree = "<group>"; };
+		B310AC /* NewCapitalAssetView.swift */  = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewCapitalAssetView.swift;  sourceTree = "<group>"; };
+		B320AC /* CapitalAssetDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapitalAssetDetailView.swift; sourceTree = "<group>"; };
+		B330AC /* PropertyCapitalAssetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyCapitalAssetsView.swift; sourceTree = "<group>"; };
 		B10063 /* LimitsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitsService.swift; sourceTree = "<group>"; };
 		B10064 /* UsageLimits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageLimits.swift; sourceTree = "<group>"; };
 		B10065 /* GroupReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupReviewView.swift; sourceTree = "<group>"; };
@@ -208,6 +218,7 @@
 				B210AC /* PMUnit.swift */,
 				B270AC /* PMInspection.swift */,
 				B2A0AC /* PMWorkOrder.swift */,
+				B2F0AC /* PMCapitalAsset.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -226,6 +237,7 @@
 				B230AC /* UnitService.swift */,
 				B280AC /* InspectionService.swift */,
 				B2B0AC /* WorkOrderService.swift */,
+				B300AC /* CapitalAssetService.swift */,
 				B10063 /* LimitsService.swift */,
 				B10066 /* SyncService.swift */,
 				B10067 /* CloudRepository.swift */,
@@ -308,6 +320,9 @@
 				B2C0AC /* NewWorkOrderView.swift */,
 				B2D0AC /* WorkOrderDetailView.swift */,
 				B2E0AC /* PropertyWorkOrdersView.swift */,
+				B310AC /* NewCapitalAssetView.swift */,
+				B320AC /* CapitalAssetDetailView.swift */,
+				B330AC /* PropertyCapitalAssetsView.swift */,
 			);
 			path = Property;
 			sourceTree = "<group>";
@@ -515,6 +530,11 @@
 				A2C0AC /* NewWorkOrderView.swift in Sources */,
 				A2D0AC /* WorkOrderDetailView.swift in Sources */,
 				A2E0AC /* PropertyWorkOrdersView.swift in Sources */,
+				A2F0AC /* PMCapitalAsset.swift in Sources */,
+				A300AC /* CapitalAssetService.swift in Sources */,
+				A310AC /* NewCapitalAssetView.swift in Sources */,
+				A320AC /* CapitalAssetDetailView.swift in Sources */,
+				A330AC /* PropertyCapitalAssetsView.swift in Sources */,
 				A10063 /* LimitsService.swift in Sources */,
 				A10064 /* UsageLimits.swift in Sources */,
 				A10065 /* GroupReviewView.swift in Sources */,

@@ -56,9 +56,14 @@ export default async function PropertyPortfolioPage({
             <p className="text-slate-500">{property.address}</p>
           )}
         </div>
-        <Link href={`/dashboard/portfolio/${property.id}/work-orders`} className="btn-ghost">
-          Work Orders
-        </Link>
+        <div className="flex gap-2">
+          <Link href={`/dashboard/portfolio/${property.id}/capital-assets`} className="btn-ghost">
+            Capital Assets
+          </Link>
+          <Link href={`/dashboard/portfolio/${property.id}/work-orders`} className="btn-ghost">
+            Work Orders
+          </Link>
+        </div>
       </div>
 
       <div className="card">

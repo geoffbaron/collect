@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Account, AssetWithLocation, Building, CommonArea, Inspection, Property, ProductMode, Unit, WorkOrder } from "@/lib/types";
+import type { Account, AssetWithLocation, Building, CapitalAsset, CommonArea, Inspection, Property, ProductMode, Unit, WorkOrder } from "@/lib/types";
 
 export async function getUser() {
   const supabase = createClient();
@@ -235,6 +235,30 @@ export async function getWorkOrder(id: string): Promise<WorkOrder | null> {
     .eq("id", id)
     .maybeSingle();
   return (data as WorkOrder) ?? null;
+}
+
+// ── Capital Asset Register (Phase 4) ────────────────────────
+
+export async function getCapitalAssets(filter: { propertyId: string; unitId?: string }): Promise<CapitalAsset[]> {
+  const supabase = createClient();
+  let query = supabase
+    .from("capital_assets")
+    .select("*")
+    .eq("property_id", filter.propertyId)
+    .is("deleted_at", null);
+  if (filter.unitId) query = query.eq("unit_id", filter.unitId);
+  const { data } = await query.order("created_at", { ascending: false });
+  return (data ?? []) as CapitalAsset[];
+}
+
+export async function getCapitalAsset(id: string): Promise<CapitalAsset | null> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("capital_assets")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  return (data as CapitalAsset) ?? null;
 }
 
 /**

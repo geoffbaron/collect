@@ -216,6 +216,64 @@ export const WORK_ORDER_STATUS_LABELS: Record<WorkOrderStatus, string> = {
   cancelled: "Cancelled",
 };
 
+// ── Capital Asset Register (Phase 4) ────────────────────────
+
+export type CapitalAssetType =
+  | "hvac"
+  | "roof"
+  | "water_heater"
+  | "appliance"
+  | "electrical_panel"
+  | "plumbing"
+  | "elevator"
+  | "structural"
+  | "other";
+export type CapitalAssetCondition = "excellent" | "good" | "fair" | "poor" | "needs_replacement";
+
+export type CapitalAsset = {
+  id: string;
+  account_id: string;
+  property_id: string;
+  building_id: string | null;
+  unit_id: string | null;
+  common_area_id: string | null;
+  name: string;
+  asset_type: CapitalAssetType;
+  manufacturer: string;
+  model: string;
+  serial_number: string;
+  install_date: string | null;
+  expected_lifespan_years: number | null;
+  purchase_cost: number | null;
+  condition: CapitalAssetCondition;
+  warranty_expires: string | null;
+  last_serviced_at: string | null;
+  notes: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
+export const CAPITAL_ASSET_TYPE_LABELS: Record<CapitalAssetType, string> = {
+  hvac: "HVAC",
+  roof: "Roof",
+  water_heater: "Water Heater",
+  appliance: "Appliance",
+  electrical_panel: "Electrical Panel",
+  plumbing: "Plumbing",
+  elevator: "Elevator",
+  structural: "Structural",
+  other: "Other",
+};
+
+export const CAPITAL_ASSET_CONDITION_LABELS: Record<CapitalAssetCondition, string> = {
+  excellent: "Excellent",
+  good: "Good",
+  fair: "Fair",
+  poor: "Poor",
+  needs_replacement: "Needs Replacement",
+};
+
 export const LEASE_STATUS_LABELS: Record<LeaseStatus, string> = {
   vacant: "Vacant",
   occupied: "Occupied",

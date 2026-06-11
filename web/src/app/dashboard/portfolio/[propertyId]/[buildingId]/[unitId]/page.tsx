@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAccount, getBuildings, getInspections, getProperties, getUnits, getWorkOrders } from "@/lib/data";
-import { INSPECTION_STATUS_LABELS, INSPECTION_TYPE_LABELS, LEASE_STATUS_LABELS, TURN_STATUS_LABELS, WORK_ORDER_CATEGORY_LABELS, WORK_ORDER_STATUS_LABELS } from "@/lib/types";
+import { getAccount, getBuildings, getCapitalAssets, getInspections, getProperties, getUnits, getWorkOrders } from "@/lib/data";
+import { CAPITAL_ASSET_CONDITION_LABELS, CAPITAL_ASSET_TYPE_LABELS, INSPECTION_STATUS_LABELS, INSPECTION_TYPE_LABELS, LEASE_STATUS_LABELS, TURN_STATUS_LABELS, WORK_ORDER_CATEGORY_LABELS, WORK_ORDER_STATUS_LABELS } from "@/lib/types";
 import StartInspectionForm from "./StartInspectionForm";
 
 export const dynamic = "force-dynamic";
@@ -11,12 +11,13 @@ export default async function UnitDetailPage({
 }: {
   params: { propertyId: string; buildingId: string; unitId: string };
 }) {
-  const [properties, buildings, units, inspections, workOrders, account] = await Promise.all([
+  const [properties, buildings, units, inspections, workOrders, capitalAssets, account] = await Promise.all([
     getProperties(),
     getBuildings(params.propertyId),
     getUnits({ buildingId: params.buildingId }),
     getInspections(params.unitId),
     getWorkOrders({ propertyId: params.propertyId, unitId: params.unitId }),
+    getCapitalAssets({ propertyId: params.propertyId, unitId: params.unitId }),
     getAccount(),
   ]);
 
@@ -156,6 +157,48 @@ export default async function UnitDetailPage({
                     }`}
                   >
                     {WORK_ORDER_STATUS_LABELS[wo.status]}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Capital assets */}
+      <div className="card">
+        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
+          <span className="font-semibold text-slate-900">Capital Assets</span>
+          <Link href={`/dashboard/portfolio/${property.id}/capital-assets`} className="text-sm text-brand hover:underline">
+            View all
+          </Link>
+        </div>
+        {capitalAssets.length === 0 ? (
+          <div className="px-5 py-6 text-center text-slate-500">No capital assets for this unit yet.</div>
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {capitalAssets.map((asset) => (
+              <li key={asset.id}>
+                <Link
+                  href={`/dashboard/portfolio/${property.id}/capital-assets/${asset.id}`}
+                  className="flex items-center justify-between px-5 py-4 hover:bg-slate-50"
+                >
+                  <div>
+                    <div className="font-medium text-slate-900">{asset.name}</div>
+                    <div className="text-sm text-slate-500">{CAPITAL_ASSET_TYPE_LABELS[asset.asset_type]}</div>
+                  </div>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                      asset.condition === "excellent"
+                        ? "bg-green-100 text-green-700"
+                        : asset.condition === "good"
+                        ? "bg-blue-100 text-blue-700"
+                        : asset.condition === "fair"
+                        ? "bg-orange-100 text-orange-700"
+                        : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    {CAPITAL_ASSET_CONDITION_LABELS[asset.condition]}
                   </span>
                 </Link>
               </li>

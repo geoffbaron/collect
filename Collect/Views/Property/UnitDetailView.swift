@@ -14,6 +14,9 @@ struct UnitDetailView: View {
     @StateObject private var workOrderService = WorkOrderService()
     @State private var showNewWorkOrder = false
 
+    @StateObject private var capitalAssetService = CapitalAssetService()
+    @State private var showNewCapitalAsset = false
+
     var body: some View {
         List {
             // Unit info
@@ -119,6 +122,33 @@ struct UnitDetailView: View {
                 }
             }
 
+            // Capital assets
+            Section {
+                if capitalAssetService.isLoading {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .listRowBackground(Color.clear)
+                } else if capitalAssetService.capitalAssets.isEmpty {
+                    Text("No capital assets yet.")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(capitalAssetService.capitalAssets) { asset in
+                        NavigationLink {
+                            CapitalAssetDetailView(capitalAsset: asset, capitalAssetService: capitalAssetService)
+                        } label: {
+                            CapitalAssetRow(asset: asset)
+                        }
+                    }
+                }
+            } header: {
+                HStack {
+                    Text("Capital Assets")
+                    Spacer()
+                    Button("New") { showNewCapitalAsset = true }
+                        .font(.caption.weight(.medium))
+                }
+            }
+
             if !unit.notes.isEmpty {
                 Section("Notes") {
                     Text(unit.notes).foregroundStyle(.secondary)
@@ -130,6 +160,7 @@ struct UnitDetailView: View {
         .task {
             await inspectionService.load(for: unit.id)
             await workOrderService.load(unitID: unit.id)
+            await capitalAssetService.load(unitID: unit.id)
         }
         .sheet(isPresented: $showInspectionFlow) {
             if let inspection = activeInspection {
@@ -146,6 +177,14 @@ struct UnitDetailView: View {
                 buildingID: unit.buildingID,
                 unitID: unit.id,
                 workOrderService: workOrderService
+            )
+        }
+        .sheet(isPresented: $showNewCapitalAsset) {
+            NewCapitalAssetView(
+                propertyID: unit.propertyID,
+                buildingID: unit.buildingID,
+                unitID: unit.id,
+                capitalAssetService: capitalAssetService
             )
         }
         .confirmationDialog("Inspection Type", isPresented: $showTypeSheet, titleVisibility: .visible) {
