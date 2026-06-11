@@ -15,7 +15,7 @@ export default function UnitActions({
   const [addPending, startAdd] = useTransition();
   const [csvPending, startCsv] = useTransition();
   const [addError, setAddError] = useState<string | null>(null);
-  const [csvResult, setCsvResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [csvResult, setCsvResult] = useState<{ ok: boolean; message: string; errors: string[] } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function handleAddUnit(e: React.FormEvent<HTMLFormElement>) {
@@ -51,6 +51,7 @@ export default function UnitActions({
         message: result.ok
           ? `Imported ${result.count} unit${result.count !== 1 ? "s" : ""} successfully.`
           : result.error ?? "Import failed.",
+        errors: result.errors ?? [],
       });
       if (fileRef.current) fileRef.current.value = "";
     });
@@ -64,25 +65,25 @@ export default function UnitActions({
         <form onSubmit={handleAddUnit} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Unit #</label>
-              <input name="unit_number" required placeholder="101" className="input w-full" />
+              <label htmlFor="unit-number" className="mb-1 block text-xs font-medium text-slate-600">Unit #</label>
+              <input id="unit-number" name="unit_number" required placeholder="101" className="input w-full" />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Floor</label>
-              <input name="floor_number" type="number" placeholder="1" className="input w-full" />
+              <label htmlFor="unit-floor" className="mb-1 block text-xs font-medium text-slate-600">Floor</label>
+              <input id="unit-floor" name="floor_number" type="number" placeholder="1" className="input w-full" />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Beds</label>
-              <input name="bedrooms" type="number" step="0.5" placeholder="2" className="input w-full" />
+              <label htmlFor="unit-bedrooms" className="mb-1 block text-xs font-medium text-slate-600">Beds</label>
+              <input id="unit-bedrooms" name="bedrooms" type="number" step="0.5" placeholder="2" className="input w-full" />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Baths</label>
-              <input name="bathrooms" type="number" step="0.5" placeholder="1" className="input w-full" />
+              <label htmlFor="unit-bathrooms" className="mb-1 block text-xs font-medium text-slate-600">Baths</label>
+              <input id="unit-bathrooms" name="bathrooms" type="number" step="0.5" placeholder="1" className="input w-full" />
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">Sqft (optional)</label>
-            <input name="sqft" type="number" placeholder="850" className="input w-full" />
+            <label htmlFor="unit-sqft" className="mb-1 block text-xs font-medium text-slate-600">Sqft (optional)</label>
+            <input id="unit-sqft" name="sqft" type="number" placeholder="850" className="input w-full" />
           </div>
           {addError && <p className="text-sm text-red-600">{addError}</p>}
           <button type="submit" disabled={addPending} className="btn-primary w-full">
@@ -123,9 +124,18 @@ export default function UnitActions({
         </label>
         {csvPending && <p className="mt-2 text-sm text-slate-500">Importing…</p>}
         {csvResult && (
-          <p className={`mt-2 text-sm ${csvResult.ok ? "text-green-700" : "text-red-600"}`}>
-            {csvResult.message}
-          </p>
+          <div className="mt-2">
+            <p className={`text-sm ${csvResult.ok ? "text-green-700" : "text-red-600"}`}>
+              {csvResult.message}
+            </p>
+            {csvResult.errors.length > 0 && (
+              <ul className="mt-1 list-inside list-disc text-sm text-amber-700">
+                {csvResult.errors.map((err, i) => (
+                  <li key={i}>{err}</li>
+                ))}
+              </ul>
+            )}
+          </div>
         )}
       </div>
     </div>

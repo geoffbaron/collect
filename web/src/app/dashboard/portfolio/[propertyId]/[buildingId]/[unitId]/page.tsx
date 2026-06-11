@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAccount, getBuildings, getCapitalAssets, getInspections, getMaintenanceSchedules, getProperties, getUnits, getWorkOrders } from "@/lib/data";
 import { CAPITAL_ASSET_CONDITION_LABELS, CAPITAL_ASSET_TYPE_LABELS, INSPECTION_STATUS_LABELS, INSPECTION_TYPE_LABELS, LEASE_STATUS_LABELS, MAINTENANCE_FREQUENCY_LABELS, TURN_STATUS_LABELS, WORK_ORDER_CATEGORY_LABELS, WORK_ORDER_STATUS_LABELS } from "@/lib/types";
+import { formatDateOnly, localDateString } from "@/lib/dates";
 import StartInspectionForm from "./StartInspectionForm";
 
 export const dynamic = "force-dynamic";
@@ -33,7 +34,7 @@ export default async function UnitDetailPage({
     (i) => i.inspection_type === "move_in" && i.status === "completed"
   );
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDateString();
 
   return (
     <div className="space-y-6">
@@ -130,7 +131,7 @@ export default async function UnitDetailPage({
       <div className="card">
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
           <span className="font-semibold text-slate-900">Work Orders</span>
-          <Link href={`/dashboard/portfolio/${property.id}/work-orders`} className="text-sm text-brand hover:underline">
+          <Link href={`/dashboard/portfolio/${property.id}/work-orders?unitId=${unit.id}`} className="text-sm text-brand hover:underline">
             View all
           </Link>
         </div>
@@ -172,7 +173,7 @@ export default async function UnitDetailPage({
       <div className="card">
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
           <span className="font-semibold text-slate-900">Capital Assets</span>
-          <Link href={`/dashboard/portfolio/${property.id}/capital-assets`} className="text-sm text-brand hover:underline">
+          <Link href={`/dashboard/portfolio/${property.id}/capital-assets?unitId=${unit.id}`} className="text-sm text-brand hover:underline">
             View all
           </Link>
         </div>
@@ -213,7 +214,7 @@ export default async function UnitDetailPage({
       <div className="card">
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
           <span className="font-semibold text-slate-900">Maintenance Schedules</span>
-          <Link href={`/dashboard/portfolio/${property.id}/maintenance-schedules`} className="text-sm text-brand hover:underline">
+          <Link href={`/dashboard/portfolio/${property.id}/maintenance-schedules?unitId=${unit.id}`} className="text-sm text-brand hover:underline">
             View all
           </Link>
         </div>
@@ -234,7 +235,7 @@ export default async function UnitDetailPage({
                       <div className="text-sm text-slate-500">{MAINTENANCE_FREQUENCY_LABELS[schedule.frequency]}</div>
                     </div>
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${overdue ? "bg-red-100 text-red-700" : "bg-slate-100 text-slate-700"}`}>
-                      Due {new Date(schedule.next_due_date).toLocaleDateString()}
+                      Due {formatDateOnly(schedule.next_due_date)}
                     </span>
                   </Link>
                 </li>

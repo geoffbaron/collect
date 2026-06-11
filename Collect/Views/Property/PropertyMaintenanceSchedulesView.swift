@@ -8,6 +8,37 @@ struct PropertyMaintenanceSchedulesView: View {
     @State private var showNewSchedule = false
 
     var body: some View {
+        VStack(spacing: 0) {
+            if let error = maintenanceScheduleService.error {
+                ErrorBanner(message: error, onDismiss: { maintenanceScheduleService.clearError() })
+                    .padding([.horizontal, .top])
+            }
+            content
+        }
+        .navigationTitle("Maintenance Schedules")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showNewSchedule = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
+        }
+        .sheet(isPresented: $showNewSchedule) {
+            NewMaintenanceScheduleView(
+                propertyID: property.id.uuidString,
+                buildingID: nil,
+                unitID: nil,
+                maintenanceScheduleService: maintenanceScheduleService
+            )
+        }
+        .task { await maintenanceScheduleService.load(propertyID: property.id.uuidString) }
+    }
+
+    @ViewBuilder
+    private var content: some View {
         Group {
             if maintenanceScheduleService.isLoading && maintenanceScheduleService.schedules.isEmpty {
                 ProgressView("Loading schedules…")
@@ -32,26 +63,6 @@ struct PropertyMaintenanceSchedulesView: View {
                 }
             }
         }
-        .navigationTitle("Maintenance Schedules")
-        .navigationBarTitleDisplayMode(.large)
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    showNewSchedule = true
-                } label: {
-                    Image(systemName: "plus")
-                }
-            }
-        }
-        .sheet(isPresented: $showNewSchedule) {
-            NewMaintenanceScheduleView(
-                propertyID: property.id.uuidString,
-                buildingID: nil,
-                unitID: nil,
-                maintenanceScheduleService: maintenanceScheduleService
-            )
-        }
-        .task { await maintenanceScheduleService.load(propertyID: property.id.uuidString) }
     }
 }
 

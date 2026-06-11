@@ -5,7 +5,9 @@ import {
   WORK_ORDER_CATEGORY_LABELS,
   WORK_ORDER_PRIORITY_LABELS,
 } from "@/lib/types";
+import { formatDateOnly } from "@/lib/dates";
 import StatusSelect from "./StatusSelect";
+import EditWorkOrderForm from "./EditWorkOrderForm";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +51,7 @@ export default async function WorkOrderDetailPage({
           <InfoItem label="Category" value={WORK_ORDER_CATEGORY_LABELS[workOrder.category]} />
           <InfoItem label="Priority" value={WORK_ORDER_PRIORITY_LABELS[workOrder.priority]} />
           {workOrder.due_date && (
-            <InfoItem label="Due" value={new Date(workOrder.due_date).toLocaleDateString()} />
+            <InfoItem label="Due" value={formatDateOnly(workOrder.due_date)} />
           )}
           {workOrder.completed_at && (
             <InfoItem label="Completed" value={new Date(workOrder.completed_at).toLocaleDateString()} />
@@ -57,6 +59,8 @@ export default async function WorkOrderDetailPage({
         </dl>
 
         <StatusSelect workOrderId={workOrder.id} propertyId={property.id} status={workOrder.status} />
+
+        <EditWorkOrderForm workOrder={workOrder} propertyId={property.id} />
       </div>
     </div>
   );

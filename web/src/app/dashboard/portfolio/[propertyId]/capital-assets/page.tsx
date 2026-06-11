@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAccount, getCapitalAssets, getProperties } from "@/lib/data";
+import { getAccount, getBuildings, getCapitalAssets, getCommonAreas, getProperties, getUnits } from "@/lib/data";
 import {
   CAPITAL_ASSET_CONDITION_LABELS,
   CAPITAL_ASSET_TYPE_LABELS,
 } from "@/lib/types";
+import { formatDateOnly } from "@/lib/dates";
 import NewCapitalAssetForm from "./NewCapitalAssetForm";
 
 export const dynamic = "force-dynamic";
@@ -19,19 +20,27 @@ const CONDITION_STYLES: Record<string, string> = {
 
 export default async function PropertyCapitalAssetsPage({
   params,
+  searchParams,
 }: {
   params: { propertyId: string };
+  searchParams: { unitId?: string };
 }) {
-  const [properties, capitalAssets, account] = await Promise.all([
+  const unitId = searchParams.unitId;
+  const [properties, capitalAssets, account, buildings, units, commonAreas] = await Promise.all([
     getProperties(),
-    getCapitalAssets({ propertyId: params.propertyId }),
+    getCapitalAssets({ propertyId: params.propertyId, unitId }),
     getAccount(),
+    getBuildings(params.propertyId),
+    getUnits({ propertyId: params.propertyId }),
+    getCommonAreas(params.propertyId),
   ]);
 
   if (account?.product_mode !== "property_manager") notFound();
 
   const property = properties.find((p) => p.id === params.propertyId);
   if (!property) notFound();
+
+  const unit = unitId ? units.find((u) => u.id === unitId) : undefined;
 
   return (
     <div className="space-y-6">
@@ -45,6 +54,15 @@ export default async function PropertyCapitalAssetsPage({
         </div>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">Capital Assets</h1>
       </div>
+
+      {unit && (
+        <div className="flex items-center justify-between rounded-md bg-slate-100 px-4 py-2 text-sm text-slate-700">
+          <span>Showing capital assets for Unit {unit.unit_number}</span>
+          <Link href={`/dashboard/portfolio/${property.id}/capital-assets`} className="text-brand hover:underline">
+            Clear filter
+          </Link>
+        </div>
+      )}
 
       <div className="card">
         <div className="border-b border-slate-200 px-5 py-3 font-semibold text-slate-900">
@@ -65,7 +83,7 @@ export default async function PropertyCapitalAssetsPage({
                     <div className="text-sm text-slate-500">
                       {CAPITAL_ASSET_TYPE_LABELS[asset.asset_type]}
                       {asset.manufacturer && ` · ${asset.manufacturer}`}
-                      {asset.install_date && ` · Installed ${new Date(asset.install_date).toLocaleDateString()}`}
+                      {asset.install_date && ` · Installed ${formatDateOnly(asset.install_date)}`}
                     </div>
                   </div>
                   <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${CONDITION_STYLES[asset.condition]}`}>
@@ -78,7 +96,7 @@ export default async function PropertyCapitalAssetsPage({
         )}
       </div>
 
-      <NewCapitalAssetForm propertyId={property.id} />
+      <NewCapitalAssetForm propertyId={property.id} buildings={buildings} units={units} commonAreas={commonAreas} />
     </div>
   );
 }

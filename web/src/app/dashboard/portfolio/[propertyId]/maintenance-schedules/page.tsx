@@ -1,23 +1,30 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAccount, getMaintenanceSchedules, getProperties } from "@/lib/data";
+import { getAccount, getBuildings, getCommonAreas, getMaintenanceSchedules, getProperties, getUnits } from "@/lib/data";
 import {
   MAINTENANCE_FREQUENCY_LABELS,
   WORK_ORDER_CATEGORY_LABELS,
 } from "@/lib/types";
+import { formatDateOnly, localDateString } from "@/lib/dates";
 import NewMaintenanceScheduleForm from "./NewMaintenanceScheduleForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function PropertyMaintenanceSchedulesPage({
   params,
+  searchParams,
 }: {
   params: { propertyId: string };
+  searchParams: { unitId?: string };
 }) {
-  const [properties, schedules, account] = await Promise.all([
+  const unitId = searchParams.unitId;
+  const [properties, schedules, account, buildings, units, commonAreas] = await Promise.all([
     getProperties(),
-    getMaintenanceSchedules({ propertyId: params.propertyId }),
+    getMaintenanceSchedules({ propertyId: params.propertyId, unitId }),
     getAccount(),
+    getBuildings(params.propertyId),
+    getUnits({ propertyId: params.propertyId }),
+    getCommonAreas(params.propertyId),
   ]);
 
   if (account?.product_mode !== "property_manager") notFound();
@@ -25,7 +32,9 @@ export default async function PropertyMaintenanceSchedulesPage({
   const property = properties.find((p) => p.id === params.propertyId);
   if (!property) notFound();
 
-  const today = new Date().toISOString().slice(0, 10);
+  const unit = unitId ? units.find((u) => u.id === unitId) : undefined;
+
+  const today = localDateString();
 
   return (
     <div className="space-y-6">
@@ -39,6 +48,15 @@ export default async function PropertyMaintenanceSchedulesPage({
         </div>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">Maintenance Schedules</h1>
       </div>
+
+      {unit && (
+        <div className="flex items-center justify-between rounded-md bg-slate-100 px-4 py-2 text-sm text-slate-700">
+          <span>Showing maintenance schedules for Unit {unit.unit_number}</span>
+          <Link href={`/dashboard/portfolio/${property.id}/maintenance-schedules`} className="text-brand hover:underline">
+            Clear filter
+          </Link>
+        </div>
+      )}
 
       <div className="card">
         <div className="border-b border-slate-200 px-5 py-3 font-semibold text-slate-900">
@@ -64,7 +82,7 @@ export default async function PropertyMaintenanceSchedulesPage({
                       </div>
                     </div>
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${overdue ? "bg-red-100 text-red-700" : "bg-slate-100 text-slate-700"}`}>
-                      Due {new Date(schedule.next_due_date).toLocaleDateString()}
+                      Due {formatDateOnly(schedule.next_due_date)}
                     </span>
                   </Link>
                 </li>
@@ -74,7 +92,7 @@ export default async function PropertyMaintenanceSchedulesPage({
         )}
       </div>
 
-      <NewMaintenanceScheduleForm propertyId={property.id} />
+      <NewMaintenanceScheduleForm propertyId={property.id} buildings={buildings} units={units} commonAreas={commonAreas} />
     </div>
   );
 }

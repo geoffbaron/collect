@@ -11,6 +11,10 @@ final class MaintenanceScheduleService: ObservableObject {
 
     private let db = SupabaseManager.shared.client
 
+    func clearError() {
+        error = nil
+    }
+
     /// Loads every maintenance schedule for a property (across all units/buildings).
     func load(propertyID: String) async {
         isLoading = true
@@ -96,15 +100,93 @@ final class MaintenanceScheduleService: ObservableObject {
         let previous = schedules[idx].active
         schedules[idx].active = active
 
+        struct RowID: Decodable { let id: String }
+
         do {
-            try await db
+            let updated: [RowID] = try await db
                 .from("maintenance_schedules")
                 .update(["active": active])
                 .eq("id", value: schedule.id)
+                .select("id")
                 .execute()
+                .value
+            if updated.isEmpty {
+                schedules[idx].active = previous
+                self.error = "You don't have permission to update this schedule."
+            }
         } catch {
             schedules[idx].active = previous
             self.error = error.localizedDescription
+        }
+    }
+
+    func update(
+        _ schedule: PMMaintenanceSchedule,
+        title: String,
+        description: String,
+        category: WorkOrderCategory,
+        frequency: MaintenanceFrequency,
+        nextDueDate: String
+    ) async -> Bool {
+        guard let idx = schedules.firstIndex(where: { $0.id == schedule.id }) else { return false }
+        let previous = schedules[idx]
+        schedules[idx].title = title
+        schedules[idx].description = description
+        schedules[idx].category = category
+        schedules[idx].frequency = frequency
+        schedules[idx].nextDueDate = nextDueDate
+
+        struct RowID: Decodable { let id: String }
+
+        do {
+            let updated: [RowID] = try await db
+                .from("maintenance_schedules")
+                .update([
+                    "title": title,
+                    "description": description,
+                    "category": category.rawValue,
+                    "frequency": frequency.rawValue,
+                    "next_due_date": nextDueDate,
+                ])
+                .eq("id", value: schedule.id)
+                .select("id")
+                .execute()
+                .value
+            if updated.isEmpty {
+                schedules[idx] = previous
+                self.error = "You don't have permission to update this schedule."
+                return false
+            }
+            schedules.sort { $0.nextDueDate < $1.nextDueDate }
+            return true
+        } catch {
+            schedules[idx] = previous
+            self.error = error.localizedDescription
+            return false
+        }
+    }
+
+    func delete(_ schedule: PMMaintenanceSchedule) async -> Bool {
+        struct RowID: Decodable { let id: String }
+
+        do {
+            let iso = ISO8601DateFormatter().string(from: Date())
+            let updated: [RowID] = try await db
+                .from("maintenance_schedules")
+                .update(["deleted_at": iso])
+                .eq("id", value: schedule.id)
+                .select("id")
+                .execute()
+                .value
+            if updated.isEmpty {
+                self.error = "You don't have permission to delete this schedule."
+                return false
+            }
+            schedules.removeAll { $0.id == schedule.id }
+            return true
+        } catch {
+            self.error = error.localizedDescription
+            return false
         }
     }
 }

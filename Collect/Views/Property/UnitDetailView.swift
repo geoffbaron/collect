@@ -22,6 +22,28 @@ struct UnitDetailView: View {
 
     var body: some View {
         List {
+            // Errors
+            if let error = inspectionService.error {
+                ErrorBanner(message: error, onDismiss: { inspectionService.clearError() })
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+            }
+            if let error = workOrderService.error {
+                ErrorBanner(message: error, onDismiss: { workOrderService.clearError() })
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+            }
+            if let error = capitalAssetService.error {
+                ErrorBanner(message: error, onDismiss: { capitalAssetService.clearError() })
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+            }
+            if let error = maintenanceScheduleService.error {
+                ErrorBanner(message: error, onDismiss: { maintenanceScheduleService.clearError() })
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+            }
+
             // Unit info
             Section {
                 LabeledContent("Unit", value: unit.unitNumber)

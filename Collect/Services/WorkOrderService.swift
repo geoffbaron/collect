@@ -11,6 +11,10 @@ final class WorkOrderService: ObservableObject {
 
     private let db = SupabaseManager.shared.client
 
+    func clearError() {
+        error = nil
+    }
+
     /// Loads every work order for a property (across all units/buildings).
     func load(propertyID: String) async {
         isLoading = true
@@ -96,34 +100,112 @@ final class WorkOrderService: ObservableObject {
         let previousCompletedAt = workOrders[idx].completedAt
         workOrders[idx].status = status
 
-        var payload: [String: String] = ["status": status.rawValue]
         if status == .completed {
-            let iso = ISO8601DateFormatter().string(from: Date())
-            payload["completed_at"] = iso
             workOrders[idx].completedAt = Date()
         } else {
-            payload["completed_at"] = ""
             workOrders[idx].completedAt = nil
         }
 
+        struct RowID: Decodable { let id: String }
+
         do {
+            let updated: [RowID]
             if status == .completed {
-                try await db
+                let iso = ISO8601DateFormatter().string(from: Date())
+                updated = try await db
                     .from("work_orders")
-                    .update(payload)
+                    .update(["status": status.rawValue, "completed_at": iso])
                     .eq("id", value: workOrder.id)
+                    .select("id")
                     .execute()
+                    .value
             } else {
-                try await db
+                updated = try await db
                     .from("work_orders")
                     .update(["status": status.rawValue, "completed_at": nil] as [String: String?])
                     .eq("id", value: workOrder.id)
+                    .select("id")
                     .execute()
+                    .value
+            }
+            if updated.isEmpty {
+                workOrders[idx].status = previousStatus
+                workOrders[idx].completedAt = previousCompletedAt
+                self.error = "You don't have permission to update this work order."
             }
         } catch {
             workOrders[idx].status = previousStatus
             workOrders[idx].completedAt = previousCompletedAt
             self.error = error.localizedDescription
+        }
+    }
+
+    func update(
+        _ workOrder: PMWorkOrder,
+        title: String,
+        description: String,
+        category: WorkOrderCategory,
+        priority: WorkOrderPriority,
+        dueDate: String?
+    ) async -> Bool {
+        guard let idx = workOrders.firstIndex(where: { $0.id == workOrder.id }) else { return false }
+        let previous = workOrders[idx]
+        workOrders[idx].title = title
+        workOrders[idx].description = description
+        workOrders[idx].category = category
+        workOrders[idx].priority = priority
+        workOrders[idx].dueDate = dueDate
+
+        struct RowID: Decodable { let id: String }
+
+        do {
+            let updated: [RowID] = try await db
+                .from("work_orders")
+                .update([
+                    "title": title,
+                    "description": description,
+                    "category": category.rawValue,
+                    "priority": priority.rawValue,
+                    "due_date": dueDate,
+                ] as [String: String?])
+                .eq("id", value: workOrder.id)
+                .select("id")
+                .execute()
+                .value
+            if updated.isEmpty {
+                workOrders[idx] = previous
+                self.error = "You don't have permission to update this work order."
+                return false
+            }
+            return true
+        } catch {
+            workOrders[idx] = previous
+            self.error = error.localizedDescription
+            return false
+        }
+    }
+
+    func delete(_ workOrder: PMWorkOrder) async -> Bool {
+        struct RowID: Decodable { let id: String }
+
+        do {
+            let iso = ISO8601DateFormatter().string(from: Date())
+            let updated: [RowID] = try await db
+                .from("work_orders")
+                .update(["deleted_at": iso])
+                .eq("id", value: workOrder.id)
+                .select("id")
+                .execute()
+                .value
+            if updated.isEmpty {
+                self.error = "You don't have permission to delete this work order."
+                return false
+            }
+            workOrders.removeAll { $0.id == workOrder.id }
+            return true
+        } catch {
+            self.error = error.localizedDescription
+            return false
         }
     }
 }

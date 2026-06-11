@@ -6,19 +6,34 @@ import { createWorkOrder } from "@/lib/actions";
 import {
   WORK_ORDER_CATEGORY_LABELS,
   WORK_ORDER_PRIORITY_LABELS,
+  type Building,
+  type CommonArea,
+  type Unit,
   type WorkOrderCategory,
   type WorkOrderPriority,
 } from "@/lib/types";
+import LocationSelect, { parseLocationValue } from "@/components/LocationSelect";
 
 const CATEGORIES = Object.entries(WORK_ORDER_CATEGORY_LABELS) as [WorkOrderCategory, string][];
 const PRIORITIES = Object.entries(WORK_ORDER_PRIORITY_LABELS) as [WorkOrderPriority, string][];
 
-export default function NewWorkOrderForm({ propertyId }: { propertyId: string }) {
+export default function NewWorkOrderForm({
+  propertyId,
+  buildings,
+  units,
+  commonAreas,
+}: {
+  propertyId: string;
+  buildings: Building[];
+  units: Unit[];
+  commonAreas: CommonArea[];
+}) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<WorkOrderCategory>("other");
   const [priority, setPriority] = useState<WorkOrderPriority>("medium");
   const [dueDate, setDueDate] = useState("");
+  const [location, setLocation] = useState("property");
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const router = useRouter();
@@ -27,6 +42,7 @@ export default function NewWorkOrderForm({ propertyId }: { propertyId: string })
     e.preventDefault();
     setError(null);
     start(async () => {
+      const target = parseLocationValue(location, units, commonAreas);
       const result = await createWorkOrder({
         propertyId,
         title,
@@ -34,6 +50,7 @@ export default function NewWorkOrderForm({ propertyId }: { propertyId: string })
         category,
         priority,
         dueDate: dueDate || null,
+        ...target,
       });
       if (!result.ok) { setError(result.error ?? "Failed to create work order."); return; }
       setTitle("");
@@ -41,6 +58,7 @@ export default function NewWorkOrderForm({ propertyId }: { propertyId: string })
       setCategory("other");
       setPriority("medium");
       setDueDate("");
+      setLocation("property");
       router.refresh();
     });
   }
@@ -50,37 +68,45 @@ export default function NewWorkOrderForm({ propertyId }: { propertyId: string })
       <h2 className="font-semibold text-slate-900">New Work Order</h2>
 
       <div>
-        <label className="label">Title</label>
-        <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} required />
+        <label className="label" htmlFor="wo-title">Title</label>
+        <input id="wo-title" className="input" value={title} onChange={(e) => setTitle(e.target.value)} required />
       </div>
 
       <div>
-        <label className="label">Description</label>
-        <textarea className="input" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
+        <label className="label" htmlFor="wo-description">Description</label>
+        <textarea id="wo-description" className="input" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div>
-          <label className="label">Category</label>
-          <select className="input" value={category} onChange={(e) => setCategory(e.target.value as WorkOrderCategory)}>
+          <label className="label" htmlFor="wo-category">Category</label>
+          <select id="wo-category" className="input" value={category} onChange={(e) => setCategory(e.target.value as WorkOrderCategory)}>
             {CATEGORIES.map(([value, label]) => (
               <option key={value} value={value}>{label}</option>
             ))}
           </select>
         </div>
         <div>
-          <label className="label">Priority</label>
-          <select className="input" value={priority} onChange={(e) => setPriority(e.target.value as WorkOrderPriority)}>
+          <label className="label" htmlFor="wo-priority">Priority</label>
+          <select id="wo-priority" className="input" value={priority} onChange={(e) => setPriority(e.target.value as WorkOrderPriority)}>
             {PRIORITIES.map(([value, label]) => (
               <option key={value} value={value}>{label}</option>
             ))}
           </select>
         </div>
         <div>
-          <label className="label">Due Date</label>
-          <input className="input" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+          <label className="label" htmlFor="wo-due-date">Due Date</label>
+          <input id="wo-due-date" className="input" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
         </div>
       </div>
+
+      <LocationSelect
+        value={location}
+        onChange={setLocation}
+        buildings={buildings}
+        units={units}
+        commonAreas={commonAreas}
+      />
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
