@@ -235,12 +235,18 @@ struct ListingPrepView: View {
         try? modelContext.save()
 
         // 2. Upload immediately so the extension can access the listing + photos
-        // right away. Bypass the queue for timing; queue a follow-up upsert too.
+        // right away. If the immediate upload fails (e.g. transient network
+        // error), fall back to the durable sync queue so the listing still
+        // reaches Supabase — and the extension — on the next drain.
         if featuresService.cloudStorageEnabled, let userID = authService.currentUserID {
             Task {
-                try? await CloudRepository.shared.upsert(
-                    asset: asset, userID: userID, uploadPhotos: true
-                )
+                do {
+                    try await CloudRepository.shared.upsert(
+                        asset: asset, userID: userID, uploadPhotos: true
+                    )
+                } catch {
+                    syncService.enqueue(.upsertAsset(id: asset.id))
+                }
             }
         } else {
             syncService.enqueue(.upsertAsset(id: asset.id))
