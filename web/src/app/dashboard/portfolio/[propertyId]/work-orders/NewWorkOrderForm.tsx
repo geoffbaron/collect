@@ -8,6 +8,7 @@ import {
   WORK_ORDER_PRIORITY_LABELS,
   type Building,
   type CommonArea,
+  type TeamMember,
   type Unit,
   type WorkOrderCategory,
   type WorkOrderPriority,
@@ -22,17 +23,20 @@ export default function NewWorkOrderForm({
   buildings,
   units,
   commonAreas,
+  members,
 }: {
   propertyId: string;
   buildings: Building[];
   units: Unit[];
   commonAreas: CommonArea[];
+  members: TeamMember[];
 }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<WorkOrderCategory>("other");
   const [priority, setPriority] = useState<WorkOrderPriority>("medium");
   const [dueDate, setDueDate] = useState("");
+  const [assignedTo, setAssignedTo] = useState("");
   const [location, setLocation] = useState("property");
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -50,6 +54,7 @@ export default function NewWorkOrderForm({
         category,
         priority,
         dueDate: dueDate || null,
+        assignedTo: assignedTo || null,
         ...target,
       });
       if (!result.ok) { setError(result.error ?? "Failed to create work order."); return; }
@@ -58,6 +63,7 @@ export default function NewWorkOrderForm({
       setCategory("other");
       setPriority("medium");
       setDueDate("");
+      setAssignedTo("");
       setLocation("property");
       router.refresh();
     });
@@ -98,6 +104,16 @@ export default function NewWorkOrderForm({
           <label className="label" htmlFor="wo-due-date">Due Date</label>
           <input id="wo-due-date" className="input" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
         </div>
+      </div>
+
+      <div>
+        <label className="label" htmlFor="wo-assignee">Assign To</label>
+        <select id="wo-assignee" className="input" value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)}>
+          <option value="">Unassigned</option>
+          {members.map((m) => (
+            <option key={m.user_id} value={m.user_id}>{m.name || m.email || "Unknown"}</option>
+          ))}
+        </select>
       </div>
 
       <LocationSelect

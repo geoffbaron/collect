@@ -6,8 +6,19 @@
 // rows below is retained as "created by".
 
 export type ProductMode = "homeowner" | "property_manager";
-export type AccountRole = "owner" | "admin" | "manager" | "member";
+export type AccountRole = "owner" | "admin" | "manager" | "member" | "maintenance";
 export type Plan = "free" | "pro" | "enterprise";
+
+export const ACCOUNT_ROLE_LABELS: Record<AccountRole, string> = {
+  owner: "Owner",
+  admin: "Admin",
+  manager: "Manager",
+  member: "Member",
+  maintenance: "Maintenance",
+};
+
+/** Roles an owner/admin can grant — everything except owner. */
+export const GRANTABLE_ROLES = ["admin", "manager", "member", "maintenance"] as const satisfies readonly AccountRole[];
 
 export type Account = {
   id: string;
@@ -25,6 +36,27 @@ export type AccountMember = {
   role: AccountRole;
   region_id: string | null;
   created_at: string;
+};
+
+/** AccountMember joined with the member's profile, for team UI + pickers. */
+export type TeamMember = {
+  user_id: string;
+  role: AccountRole;
+  name: string | null;
+  email: string | null;
+  created_at: string;
+};
+
+export type AccountInvite = {
+  id: string;
+  account_id: string;
+  email: string;
+  role: AccountRole;
+  invited_by: string | null;
+  created_at: string;
+  claimed_at: string | null;
+  claimed_by: string | null;
+  revoked_at: string | null;
 };
 
 export type Region = {
@@ -188,6 +220,13 @@ export type WorkOrder = {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+};
+
+/** WorkOrder plus display context for portfolio-wide lists. */
+export type WorkOrderWithContext = WorkOrder & {
+  property_name: string | null;
+  unit_number: string | null;
+  assignee_name: string | null;
 };
 
 export const WORK_ORDER_CATEGORY_LABELS: Record<WorkOrderCategory, string> = {

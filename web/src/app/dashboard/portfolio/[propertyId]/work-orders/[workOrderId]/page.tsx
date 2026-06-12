@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAccount, getProperties, getWorkOrder } from "@/lib/data";
+import { getAccount, getAccountMembers, getProperties, getWorkOrder } from "@/lib/data";
 import {
   WORK_ORDER_CATEGORY_LABELS,
   WORK_ORDER_PRIORITY_LABELS,
@@ -16,16 +16,21 @@ export default async function WorkOrderDetailPage({
 }: {
   params: { propertyId: string; workOrderId: string };
 }) {
-  const [properties, workOrder, account] = await Promise.all([
+  const [properties, workOrder, account, members] = await Promise.all([
     getProperties(),
     getWorkOrder(params.workOrderId),
     getAccount(),
+    getAccountMembers(),
   ]);
 
   if (account?.product_mode !== "property_manager") notFound();
 
   const property = properties.find((p) => p.id === params.propertyId);
   if (!property || !workOrder || workOrder.property_id !== property.id) notFound();
+
+  const assignee = workOrder.assigned_to
+    ? members.find((m) => m.user_id === workOrder.assigned_to)
+    : undefined;
 
   return (
     <div className="space-y-6">
@@ -50,6 +55,10 @@ export default async function WorkOrderDetailPage({
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <InfoItem label="Category" value={WORK_ORDER_CATEGORY_LABELS[workOrder.category]} />
           <InfoItem label="Priority" value={WORK_ORDER_PRIORITY_LABELS[workOrder.priority]} />
+          <InfoItem
+            label="Assigned To"
+            value={workOrder.assigned_to ? assignee?.name || assignee?.email || "Unknown" : "Unassigned"}
+          />
           {workOrder.due_date && (
             <InfoItem label="Due" value={formatDateOnly(workOrder.due_date)} />
           )}
@@ -60,7 +69,7 @@ export default async function WorkOrderDetailPage({
 
         <StatusSelect workOrderId={workOrder.id} propertyId={property.id} status={workOrder.status} />
 
-        <EditWorkOrderForm workOrder={workOrder} propertyId={property.id} />
+        <EditWorkOrderForm workOrder={workOrder} propertyId={property.id} members={members} />
       </div>
     </div>
   );
