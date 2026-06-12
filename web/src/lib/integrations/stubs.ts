@@ -6,7 +6,7 @@ import type { Connector, ConnectorResult, SyncUnitsResult } from "./types";
  * Connector interface so the settings UI can list them alongside Buildium,
  * but every method returns a "requires partner agreement" error.
  */
-function unavailable(displayName: string): ConnectorResult {
+function unavailable(displayName: string): { ok: false; error: string } {
   return {
     ok: false,
     error: `${displayName} integration requires a partner API agreement — contact us to enable.`,

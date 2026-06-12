@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { setProductMode } from "@/lib/actions";
 import type { Account, ProductMode } from "@/lib/types";
 
