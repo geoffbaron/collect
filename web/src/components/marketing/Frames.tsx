@@ -286,6 +286,170 @@ export function ReportMockup() {
   );
 }
 
+/* ──────────────── Browser: work order board ──────────────── */
+
+const workOrders = [
+  { title: "Leaking faucet — Unit 2B", category: "Plumbing", priority: "Urgent", priorityColor: "bg-red-100 text-red-700", status: "Open", statusColor: "bg-slate-100 text-slate-600" },
+  { title: "AC not cooling — Unit 5A", category: "HVAC", priority: "High", priorityColor: "bg-orange-100 text-orange-700", status: "In Progress", statusColor: "bg-amber-100 text-amber-700" },
+  { title: "Smoke detector chirping — Unit 1C", category: "Safety", priority: "Medium", priorityColor: "bg-blue-100 text-blue-700", status: "In Progress", statusColor: "bg-amber-100 text-amber-700" },
+  { title: "Broken mailbox lock — Lobby", category: "Other", priority: "Low", priorityColor: "bg-slate-100 text-slate-500", status: "Completed", statusColor: "bg-green-100 text-green-700" },
+];
+
+export function WorkOrderMockup() {
+  return (
+    <BrowserFrame url="collect.app/dashboard/portfolio/maple-court/work-orders">
+      <div className="p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="text-sm font-bold text-slate-900">Work Orders</div>
+          <span className="rounded-lg bg-brand px-2.5 py-1.5 text-[11px] font-semibold text-white">+ New</span>
+        </div>
+        <div className="space-y-1.5">
+          {workOrders.map((w) => (
+            <div key={w.title} className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2">
+              <div>
+                <div className="text-[11px] font-semibold text-slate-900">{w.title}</div>
+                <div className="text-[9px] text-slate-400">{w.category}</div>
+              </div>
+              <div className="flex shrink-0 items-center gap-1.5">
+                <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${w.priorityColor}`}>{w.priority}</span>
+                <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${w.statusColor}`}>{w.status}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </BrowserFrame>
+  );
+}
+
+/* ──────────────── Browser: preventive maintenance schedules ──────────────── */
+
+const maintenanceItems = [
+  { title: "HVAC filter replacement — Building A", frequency: "Quarterly", due: "Overdue 5 days", overdue: true },
+  { title: "Gutter cleaning — Building A", frequency: "Semiannual", due: "Overdue 2 days", overdue: true },
+  { title: "Fire extinguisher inspection", frequency: "Annual", due: "Due in 12 days", overdue: false },
+  { title: "Elevator certification", frequency: "Annual", due: "Due in 64 days", overdue: false },
+];
+
+export function MaintenanceScheduleMockup() {
+  return (
+    <BrowserFrame url="collect.app/dashboard/portfolio/maple-court/maintenance-schedules">
+      <div className="p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="text-sm font-bold text-slate-900">Maintenance Schedules</div>
+          <span className="rounded-full bg-red-100 px-2.5 py-1 text-[10px] font-semibold text-red-700">2 overdue</span>
+        </div>
+        <div className="space-y-1.5">
+          {maintenanceItems.map((m) => (
+            <div key={m.title} className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2">
+              <div>
+                <div className="text-[11px] font-semibold text-slate-900">{m.title}</div>
+                <div className="text-[9px] text-slate-400">{m.frequency}</div>
+              </div>
+              <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${m.overdue ? "bg-red-100 text-red-700" : "bg-slate-100 text-slate-600"}`}>
+                {m.due}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </BrowserFrame>
+  );
+}
+
+/* ──────────────── Browser: capital asset register ──────────────── */
+
+const capitalAssets = [
+  { name: "Roof — Building A", type: "Roof", note: "Installed 2011 · 10 yrs left on 25-yr life", condition: "Fair", color: "bg-amber-100 text-amber-700" },
+  { name: "Water Heater — Unit 1A", type: "Water Heater", note: "Installed 2010 · past expected lifespan", condition: "Needs Replacement", color: "bg-red-100 text-red-700" },
+  { name: "HVAC — Unit 3B", type: "HVAC", note: "Installed 2024 · warranty until 2034", condition: "Excellent", color: "bg-green-100 text-green-700" },
+  { name: "Elevator — Building A", type: "Elevator", note: "Last serviced Jan 2026", condition: "Good", color: "bg-green-100 text-green-700" },
+];
+
+export function CapitalAssetMockup() {
+  return (
+    <BrowserFrame url="collect.app/dashboard/portfolio/maple-court/capital-assets">
+      <div className="p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="text-sm font-bold text-slate-900">Capital Asset Register</div>
+          <span className="rounded-lg bg-brand px-2.5 py-1.5 text-[11px] font-semibold text-white">+ New</span>
+        </div>
+        <div className="space-y-1.5">
+          {capitalAssets.map((a) => (
+            <div key={a.name} className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2">
+              <div>
+                <div className="text-[11px] font-semibold text-slate-900">{a.name}</div>
+                <div className="text-[9px] text-slate-400">{a.note}</div>
+              </div>
+              <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${a.color}`}>{a.condition}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </BrowserFrame>
+  );
+}
+
+/* ──────────────── Browser: portfolio operations dashboard ──────────────── */
+
+const opsStats = [
+  { label: "Properties", value: "8" },
+  { label: "Vacant units", value: "6 / 142" },
+  { label: "Open work orders", value: "14" },
+  { label: "Overdue maintenance", value: "5" },
+];
+
+const opsWorkOrders = [
+  { title: "AC not cooling — Unit 5A", tag: "Urgent", color: "bg-orange-100 text-orange-700" },
+  { title: "Leaking faucet — Unit 2B", tag: "Urgent", color: "bg-orange-100 text-orange-700" },
+];
+
+const opsMaintenance = [
+  { title: "HVAC filter replacement — Bldg A", due: "Overdue 5 days" },
+  { title: "Gutter cleaning — Bldg A", due: "Overdue 2 days" },
+];
+
+export function OpsDashboardMockup() {
+  return (
+    <BrowserFrame url="collect.app/dashboard">
+      <div className="p-4">
+        <div className="mb-3 grid grid-cols-4 gap-1.5">
+          {opsStats.map((s) => (
+            <div key={s.label} className="rounded-lg bg-slate-50 px-2 py-2">
+              <div className="text-[8px] uppercase tracking-wide text-slate-400">{s.label}</div>
+              <div className="text-sm font-bold text-slate-900">{s.value}</div>
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-lg border border-slate-100">
+            <div className="border-b border-slate-100 px-2.5 py-1.5 text-[10px] font-semibold text-slate-700">
+              Open Work Orders (14)
+            </div>
+            {opsWorkOrders.map((w) => (
+              <div key={w.title} className="flex items-center justify-between px-2.5 py-1.5">
+                <span className="text-[10px] font-medium text-slate-900">{w.title}</span>
+                <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-semibold ${w.color}`}>{w.tag}</span>
+              </div>
+            ))}
+          </div>
+          <div className="rounded-lg border border-slate-100">
+            <div className="border-b border-slate-100 px-2.5 py-1.5 text-[10px] font-semibold text-slate-700">
+              Overdue Maintenance (5)
+            </div>
+            {opsMaintenance.map((m) => (
+              <div key={m.title} className="flex items-center justify-between px-2.5 py-1.5">
+                <span className="text-[10px] font-medium text-slate-900">{m.title}</span>
+                <span className="rounded-full bg-red-100 px-1.5 py-0.5 text-[8px] font-semibold text-red-700">{m.due}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </BrowserFrame>
+  );
+}
+
 /* ──────────────── Browser: homeowner dashboard ──────────────── */
 
 const dashItems = [
