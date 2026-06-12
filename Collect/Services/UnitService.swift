@@ -1,4 +1,5 @@
 import Foundation
+import Supabase
 
 /// Loads and manages units for a given building. Server-driven; PM mode only.
 @MainActor
@@ -68,6 +69,88 @@ final class UnitService: ObservableObject {
         } catch {
             self.error = error.localizedDescription
             return nil
+        }
+    }
+
+    /// Edits a unit's details, including the lease/tenant fields — the only
+    /// place on mobile to record lease renewals and tenant changes. Sends
+    /// explicit JSON nulls so cleared fields are actually cleared.
+    func update(
+        _ unit: PMUnit,
+        unitNumber: String,
+        floorNumber: Int?,
+        sqft: Int?,
+        bedrooms: Double?,
+        bathrooms: Double?,
+        currentTenantName: String?,
+        leaseStart: String?,
+        leaseEnd: String?,
+        monthlyRent: Double?,
+        notes: String
+    ) async -> Bool {
+        let trimmed = unitNumber.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else {
+            error = "Unit number is required."
+            return false
+        }
+
+        let payload: [String: AnyJSON] = [
+            "unit_number":         .string(trimmed),
+            "floor_number":        floorNumber.map { .integer($0) } ?? .null,
+            "sqft":                sqft.map { .integer($0) } ?? .null,
+            "bedrooms":            bedrooms.map { .double($0) } ?? .null,
+            "bathrooms":           bathrooms.map { .double($0) } ?? .null,
+            "current_tenant_name": currentTenantName.flatMap { $0.isEmpty ? nil : .string($0) } ?? .null,
+            "lease_start":         leaseStart.flatMap { $0.isEmpty ? nil : .string($0) } ?? .null,
+            "lease_end":           leaseEnd.flatMap { $0.isEmpty ? nil : .string($0) } ?? .null,
+            "monthly_rent":        monthlyRent.map { .double($0) } ?? .null,
+            "notes":               .string(notes),
+        ]
+
+        do {
+            let rows: [PMUnit] = try await db
+                .from("units")
+                .update(payload)
+                .eq("id", value: unit.id)
+                .select("*")
+                .execute()
+                .value
+            guard let updated = rows.first else {
+                error = "You don't have permission to update this unit."
+                return false
+            }
+            if let idx = units.firstIndex(where: { $0.id == unit.id }) {
+                units[idx] = updated
+                units.sort { $0.unitNumber < $1.unitNumber }
+            }
+            return true
+        } catch {
+            self.error = error.localizedDescription
+            return false
+        }
+    }
+
+    /// Soft-deletes a unit.
+    func delete(_ unit: PMUnit) async -> Bool {
+        struct RowID: Decodable { let id: String }
+        do {
+            let iso = ISO8601DateFormatter().string(from: Date())
+            let deleted: [RowID] = try await db
+                .from("units")
+                .update(["deleted_at": iso])
+                .eq("id", value: unit.id)
+                .select("id")
+                .execute()
+                .value
+            guard !deleted.isEmpty else {
+                error = "You don't have permission to delete this unit."
+                return false
+            }
+            units.removeAll { $0.id == unit.id }
+            return true
+        } catch {
+            self.error = error.localizedDescription
+            return false
         }
     }
 
