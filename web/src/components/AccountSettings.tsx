@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { setProductMode } from "@/lib/actions";
@@ -91,6 +92,21 @@ export function AccountSettings({ account }: { account: Account | null }) {
           <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
         )}
       </section>
+
+      {current === "property_manager" && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold text-slate-900">Integrations</h2>
+          <Link href="/dashboard/settings/integrations" className="card flex items-center justify-between p-5 hover:border-slate-300">
+            <div>
+              <p className="font-medium text-slate-900">PM software integrations</p>
+              <p className="text-sm text-slate-500">
+                Connect Buildium, Yardi, AppFolio, or RealPage to sync units and work orders.
+              </p>
+            </div>
+            <span className="text-slate-400">→</span>
+          </Link>
+        </section>
+      )}
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-slate-900">Account</h2>
