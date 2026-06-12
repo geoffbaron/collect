@@ -5,11 +5,17 @@ struct WorkOrderDetailView: View {
     let workOrder: PMWorkOrder
     let workOrderService: WorkOrderService
 
+    @EnvironmentObject private var accountService: AccountService
     @Environment(\.dismiss) private var dismiss
     @State private var showEdit = false
 
     private var current: PMWorkOrder {
         workOrderService.workOrders.first { $0.id == workOrder.id } ?? workOrder
+    }
+
+    private var assigneeName: String? {
+        guard let assignedTo = current.assignedTo else { return nil }
+        return accountService.members.first { $0.userID == assignedTo }?.displayName ?? "Teammate"
     }
 
     var body: some View {
@@ -30,6 +36,7 @@ struct WorkOrderDetailView: View {
                     Text(current.priority.displayName)
                         .foregroundStyle(current.priority.color)
                 }
+                LabeledContent("Assigned To", value: assigneeName ?? "Unassigned")
                 if let dueDate = current.dueDate {
                     LabeledContent("Due", value: dueDate.formattedAsDateOnly)
                 }
@@ -57,6 +64,7 @@ struct WorkOrderDetailView: View {
                 LabeledContent("Reported", value: current.createdAt, format: .dateTime.month().day().year())
             }
         }
+        .task { await accountService.loadMembers() }
         .navigationTitle("Work Order")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

@@ -7,12 +7,14 @@ struct NewWorkOrderView: View {
     let unitID: String?
     let workOrderService: WorkOrderService
 
+    @EnvironmentObject private var accountService: AccountService
     @Environment(\.dismiss) private var dismiss
 
     @State private var title = ""
     @State private var description = ""
     @State private var category: WorkOrderCategory = .other
     @State private var priority: WorkOrderPriority = .medium
+    @State private var assignedTo = "" // empty = unassigned
     @State private var hasDueDate = false
     @State private var dueDate = Date()
     @State private var isSaving = false
@@ -37,6 +39,12 @@ struct NewWorkOrderView: View {
                             Text(p.displayName).tag(p)
                         }
                     }
+                    Picker("Assign To", selection: $assignedTo) {
+                        Text("Unassigned").tag("")
+                        ForEach(accountService.members) { member in
+                            Text(member.displayName).tag(member.userID)
+                        }
+                    }
                 }
 
                 Section {
@@ -46,6 +54,7 @@ struct NewWorkOrderView: View {
                     }
                 }
             }
+            .task { await accountService.loadMembers() }
             .navigationTitle("New Work Order")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -74,7 +83,8 @@ struct NewWorkOrderView: View {
                 description: description,
                 category: category,
                 priority: priority,
-                dueDate: dueDateString
+                dueDate: dueDateString,
+                assignedTo: assignedTo.isEmpty ? nil : assignedTo
             )
             isSaving = false
             dismiss()

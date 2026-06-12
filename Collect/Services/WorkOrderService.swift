@@ -5,7 +5,15 @@ import Foundation
 @MainActor
 final class WorkOrderService: ObservableObject {
 
+    /// Property/unit display context for account-wide lists, keyed by work
+    /// order id. Populated by loadAll().
+    struct DisplayContext: Hashable {
+        let propertyName: String?
+        let unitNumber: String?
+    }
+
     @Published private(set) var workOrders: [PMWorkOrder] = []
+    @Published private(set) var context: [String: DisplayContext] = [:]
     @Published private(set) var isLoading = false
     @Published private(set) var error: String?
 
@@ -13,6 +21,49 @@ final class WorkOrderService: ObservableObject {
 
     func clearError() {
         error = nil
+    }
+
+    /// A work_orders row with its property/unit embeds, decoded from the
+    /// same JSON object PMWorkOrder comes from.
+    private struct AllRow: Decodable {
+        let workOrder: PMWorkOrder
+        let propertyName: String?
+        let unitNumber: String?
+
+        private enum EmbedKeys: String, CodingKey { case properties, units }
+        private struct PropertyEmbed: Decodable { let name: String? }
+        private struct UnitEmbed: Decodable { let unit_number: String? }
+
+        init(from decoder: Decoder) throws {
+            workOrder = try PMWorkOrder(from: decoder)
+            let c = try decoder.container(keyedBy: EmbedKeys.self)
+            propertyName = try c.decodeIfPresent(PropertyEmbed.self, forKey: .properties)?.name
+            unitNumber   = try c.decodeIfPresent(UnitEmbed.self, forKey: .units)?.unit_number
+        }
+    }
+
+    /// Loads every work order across the account (all properties), with
+    /// property/unit context for display. Server-driven, so it works for
+    /// staff who have no local SwiftData properties.
+    func loadAll() async {
+        isLoading = true
+        error = nil
+        do {
+            let rows: [AllRow] = try await db
+                .from("work_orders")
+                .select("*, properties(name), units(unit_number)")
+                .is("deleted_at", value: nil)
+                .order("created_at", ascending: false)
+                .execute()
+                .value
+            workOrders = rows.map(\.workOrder)
+            context = Dictionary(uniqueKeysWithValues: rows.map {
+                ($0.workOrder.id, DisplayContext(propertyName: $0.propertyName, unitNumber: $0.unitNumber))
+            })
+        } catch {
+            self.error = error.localizedDescription
+        }
+        isLoading = false
     }
 
     /// Loads every work order for a property (across all units/buildings).
@@ -64,7 +115,8 @@ final class WorkOrderService: ObservableObject {
         description: String = "",
         category: WorkOrderCategory = .other,
         priority: WorkOrderPriority = .medium,
-        dueDate: String? = nil
+        dueDate: String? = nil,
+        assignedTo: String? = nil
     ) async -> PMWorkOrder? {
         var payload: [String: String] = [
             "property_id": propertyID,
@@ -77,6 +129,7 @@ final class WorkOrderService: ObservableObject {
         if let unitID { payload["unit_id"] = unitID }
         if let commonAreaID { payload["common_area_id"] = commonAreaID }
         if let dueDate { payload["due_date"] = dueDate }
+        if let assignedTo { payload["assigned_to"] = assignedTo }
 
         do {
             let row: PMWorkOrder = try await db
@@ -146,7 +199,8 @@ final class WorkOrderService: ObservableObject {
         description: String,
         category: WorkOrderCategory,
         priority: WorkOrderPriority,
-        dueDate: String?
+        dueDate: String?,
+        assignedTo: String?
     ) async -> Bool {
         guard let idx = workOrders.firstIndex(where: { $0.id == workOrder.id }) else { return false }
         let previous = workOrders[idx]
@@ -155,6 +209,7 @@ final class WorkOrderService: ObservableObject {
         workOrders[idx].category = category
         workOrders[idx].priority = priority
         workOrders[idx].dueDate = dueDate
+        workOrders[idx].assignedTo = assignedTo
 
         struct RowID: Decodable { let id: String }
 
@@ -167,6 +222,7 @@ final class WorkOrderService: ObservableObject {
                     "category": category.rawValue,
                     "priority": priority.rawValue,
                     "due_date": dueDate,
+                    "assigned_to": assignedTo,
                 ] as [String: String?])
                 .eq("id", value: workOrder.id)
                 .select("id")
