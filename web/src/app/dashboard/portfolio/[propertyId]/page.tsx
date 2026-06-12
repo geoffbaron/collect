@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAccount, getBuildings, getProperties, getPropertyVacancySummary } from "@/lib/data";
+import { getAccount, getBuildings, getCommonAreas, getProperties, getPropertyVacancySummary } from "@/lib/data";
 import { createBuilding } from "@/lib/actions";
 import AddBuildingForm from "./AddBuildingForm";
+import PropertyActions from "./PropertyActions";
+import CommonAreasSection from "./CommonAreasSection";
 
 export const dynamic = "force-dynamic";
 
@@ -11,10 +13,11 @@ export default async function PropertyPortfolioPage({
 }: {
   params: { propertyId: string };
 }) {
-  const [properties, buildings, account] = await Promise.all([
+  const [properties, buildings, account, commonAreas] = await Promise.all([
     getProperties(),
     getBuildings(params.propertyId),
     getAccount(),
+    getCommonAreas(params.propertyId),
   ]);
 
   if (account?.product_mode !== "property_manager") notFound();
@@ -69,6 +72,8 @@ export default async function PropertyPortfolioPage({
         </div>
       </div>
 
+      <PropertyActions property={property} />
+
       <div className="card">
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
           <span className="font-semibold text-slate-900">Buildings</span>
@@ -114,6 +119,8 @@ export default async function PropertyPortfolioPage({
       </div>
 
       <AddBuildingForm propertyId={property.id} />
+
+      <CommonAreasSection propertyId={property.id} commonAreas={commonAreas} />
     </div>
   );
 }

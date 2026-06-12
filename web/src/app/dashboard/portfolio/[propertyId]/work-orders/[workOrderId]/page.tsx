@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAccount, getAccountMembers, getProperties, getWorkOrder } from "@/lib/data";
+import { getAccount, getAccountMembers, getProperties, getUnits, getWorkOrder } from "@/lib/data";
 import {
   WORK_ORDER_CATEGORY_LABELS,
   WORK_ORDER_PRIORITY_LABELS,
@@ -31,6 +31,16 @@ export default async function WorkOrderDetailPage({
   const assignee = workOrder.assigned_to
     ? members.find((m) => m.user_id === workOrder.assigned_to)
     : undefined;
+
+  // Link back to the source inspection (path needs the unit's building).
+  let inspectionHref: string | null = null;
+  if (workOrder.source_inspection_id && workOrder.unit_id) {
+    const units = await getUnits({ propertyId: property.id });
+    const unit = units.find((u) => u.id === workOrder.unit_id);
+    if (unit?.building_id) {
+      inspectionHref = `/dashboard/portfolio/${property.id}/${unit.building_id}/${unit.id}/${workOrder.source_inspection_id}`;
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -66,6 +76,12 @@ export default async function WorkOrderDetailPage({
             <InfoItem label="Completed" value={new Date(workOrder.completed_at).toLocaleDateString()} />
           )}
         </dl>
+
+        {inspectionHref && (
+          <Link href={inspectionHref} className="inline-block text-sm text-brand hover:underline">
+            From inspection →
+          </Link>
+        )}
 
         <StatusSelect workOrderId={workOrder.id} propertyId={property.id} status={workOrder.status} />
 

@@ -151,6 +151,17 @@ export type CommonArea = {
   deleted_at: string | null;
 };
 
+export const AREA_TYPE_LABELS: Record<AreaType, string> = {
+  lobby: "Lobby",
+  gym: "Gym",
+  pool: "Pool",
+  hallway: "Hallway",
+  laundry: "Laundry",
+  parking: "Parking",
+  office: "Office",
+  other: "Other",
+};
+
 // ── Inspections (Phase 3) ───────────────────────────────────
 
 export type InspectionType = "move_in" | "move_out" | "routine" | "turn";

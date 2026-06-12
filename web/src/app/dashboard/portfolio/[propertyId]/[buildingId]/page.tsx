@@ -5,6 +5,7 @@ import { getAccount, getBuildings, getProperties, getUnits } from "@/lib/data";
 import { LEASE_STATUS_LABELS, TURN_STATUS_LABELS } from "@/lib/types";
 import type { Unit } from "@/lib/types";
 import UnitActions from "./UnitActions";
+import BuildingActions from "./BuildingActions";
 
 export const dynamic = "force-dynamic";
 
@@ -58,8 +59,13 @@ export default async function BuildingDetailPage({
           <span className="mx-1">›</span>
           <span className="text-slate-900">{building.name}</span>
         </div>
-        <h1 className="mt-1 text-2xl font-bold text-slate-900">{building.name}</h1>
-        {building.address && <p className="text-slate-500">{building.address}</p>}
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="mt-1 text-2xl font-bold text-slate-900">{building.name}</h1>
+            {building.address && <p className="text-slate-500">{building.address}</p>}
+          </div>
+          <BuildingActions building={building} propertyId={property.id} />
+        </div>
       </div>
 
       {/* Summary chips */}
