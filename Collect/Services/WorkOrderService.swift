@@ -1,4 +1,5 @@
 import Foundation
+import Supabase
 
 /// Manages work orders for a property (optionally scoped to a unit).
 /// Server-driven; PM mode only.
@@ -142,8 +143,49 @@ final class WorkOrderService: ObservableObject {
             workOrders.insert(row, at: 0)
             return row
         } catch {
-            self.error = error.localizedDescription
-            return nil
+            guard error is URLError else {
+                self.error = error.localizedDescription
+                return nil
+            }
+            // Offline — create locally and queue the insert for later sync.
+            let now = Date()
+            let localID = UUID().uuidString.lowercased()
+            let row = PMWorkOrder(
+                id: localID,
+                propertyID: propertyID,
+                buildingID: buildingID,
+                unitID: unitID,
+                commonAreaID: commonAreaID,
+                title: title,
+                description: description,
+                category: category,
+                priority: priority,
+                status: .open,
+                assignedTo: assignedTo,
+                reportedBy: nil,
+                dueDate: dueDate,
+                completedAt: nil,
+                sourceInspectionID: nil,
+                createdAt: now,
+                updatedAt: now
+            )
+            var syncPayload: [String: AnyJSON] = [
+                "property_id": .string(propertyID),
+                "title":       .string(title),
+                "description": .string(description),
+                "category":    .string(category.rawValue),
+                "priority":    .string(priority.rawValue),
+                "status":      .string(WorkOrderStatus.open.rawValue),
+            ]
+            if let buildingID { syncPayload["building_id"] = .string(buildingID) }
+            if let unitID { syncPayload["unit_id"] = .string(unitID) }
+            if let commonAreaID { syncPayload["common_area_id"] = .string(commonAreaID) }
+            if let dueDate { syncPayload["due_date"] = .string(dueDate) }
+            if let assignedTo { syncPayload["assigned_to"] = .string(assignedTo) }
+
+            workOrders.insert(row, at: 0)
+            PMSyncService.shared.enqueue(.insert(table: "work_orders", localID: localID, payload: syncPayload))
+            return row
         }
     }
 
@@ -187,9 +229,20 @@ final class WorkOrderService: ObservableObject {
                 self.error = "You don't have permission to update this work order."
             }
         } catch {
-            workOrders[idx].status = previousStatus
-            workOrders[idx].completedAt = previousCompletedAt
-            self.error = error.localizedDescription
+            guard error is URLError else {
+                workOrders[idx].status = previousStatus
+                workOrders[idx].completedAt = previousCompletedAt
+                self.error = error.localizedDescription
+                return
+            }
+            var payload: [String: AnyJSON] = ["status": .string(status.rawValue)]
+            if status == .completed {
+                let iso = ISO8601DateFormatter().string(from: workOrders[idx].completedAt ?? Date())
+                payload["completed_at"] = .string(iso)
+            } else {
+                payload["completed_at"] = .null
+            }
+            PMSyncService.shared.enqueue(.update(table: "work_orders", id: workOrder.id, payload: payload))
         }
     }
 
@@ -235,9 +288,21 @@ final class WorkOrderService: ObservableObject {
             }
             return true
         } catch {
-            workOrders[idx] = previous
-            self.error = error.localizedDescription
-            return false
+            guard error is URLError else {
+                workOrders[idx] = previous
+                self.error = error.localizedDescription
+                return false
+            }
+            let payload: [String: AnyJSON] = [
+                "title": .string(title),
+                "description": .string(description),
+                "category": .string(category.rawValue),
+                "priority": .string(priority.rawValue),
+                "due_date": dueDate.map { .string($0) } ?? .null,
+                "assigned_to": assignedTo.map { .string($0) } ?? .null,
+            ]
+            PMSyncService.shared.enqueue(.update(table: "work_orders", id: workOrder.id, payload: payload))
+            return true
         }
     }
 
@@ -260,8 +325,13 @@ final class WorkOrderService: ObservableObject {
             workOrders.removeAll { $0.id == workOrder.id }
             return true
         } catch {
-            self.error = error.localizedDescription
-            return false
+            guard error is URLError else {
+                self.error = error.localizedDescription
+                return false
+            }
+            workOrders.removeAll { $0.id == workOrder.id }
+            PMSyncService.shared.enqueue(.softDelete(table: "work_orders", id: workOrder.id))
+            return true
         }
     }
 }

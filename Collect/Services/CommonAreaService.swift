@@ -1,4 +1,5 @@
 import Foundation
+import Supabase
 
 /// A shared space on a property (lobby, gym, laundry…). Server-driven;
 /// PM mode only. Mirrors public.common_areas.
@@ -103,8 +104,30 @@ final class CommonAreaService: ObservableObject {
             commonAreas.sort { $0.name < $1.name }
             return row
         } catch {
-            self.error = error.localizedDescription
-            return nil
+            guard error is URLError else {
+                self.error = error.localizedDescription
+                return nil
+            }
+            let now = Date()
+            let localID = UUID().uuidString.lowercased()
+            let row = PMCommonArea(
+                id: localID,
+                propertyID: propertyID,
+                buildingID: nil,
+                name: trimmed,
+                areaType: areaType,
+                createdAt: now,
+                updatedAt: now
+            )
+            let syncPayload: [String: AnyJSON] = [
+                "property_id": .string(propertyID),
+                "name":        .string(trimmed),
+                "area_type":   .string(areaType.rawValue),
+            ]
+            commonAreas.append(row)
+            commonAreas.sort { $0.name < $1.name }
+            PMSyncService.shared.enqueue(.insert(table: "common_areas", localID: localID, payload: syncPayload))
+            return row
         }
     }
 
@@ -126,8 +149,13 @@ final class CommonAreaService: ObservableObject {
             commonAreas.removeAll { $0.id == area.id }
             return true
         } catch {
-            self.error = error.localizedDescription
-            return false
+            guard error is URLError else {
+                self.error = error.localizedDescription
+                return false
+            }
+            commonAreas.removeAll { $0.id == area.id }
+            PMSyncService.shared.enqueue(.softDelete(table: "common_areas", id: area.id))
+            return true
         }
     }
 }

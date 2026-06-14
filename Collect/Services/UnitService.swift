@@ -125,8 +125,34 @@ final class UnitService: ObservableObject {
             }
             return true
         } catch {
-            self.error = error.localizedDescription
-            return false
+            guard error is URLError else {
+                self.error = error.localizedDescription
+                return false
+            }
+            if let idx = units.firstIndex(where: { $0.id == unit.id }) {
+                units[idx] = PMUnit(
+                    id: unit.id,
+                    propertyID: unit.propertyID,
+                    buildingID: unit.buildingID,
+                    unitNumber: trimmed,
+                    floorNumber: floorNumber,
+                    sqft: sqft,
+                    bedrooms: bedrooms,
+                    bathrooms: bathrooms,
+                    leaseStatus: unit.leaseStatus,
+                    turnStatus: unit.turnStatus,
+                    currentTenantName: currentTenantName?.isEmpty == false ? currentTenantName : nil,
+                    leaseStart: leaseStart?.isEmpty == false ? leaseStart : nil,
+                    leaseEnd: leaseEnd?.isEmpty == false ? leaseEnd : nil,
+                    monthlyRent: monthlyRent,
+                    notes: notes,
+                    createdAt: unit.createdAt,
+                    updatedAt: Date()
+                )
+                units.sort { $0.unitNumber < $1.unitNumber }
+            }
+            PMSyncService.shared.enqueue(.update(table: "units", id: unit.id, payload: payload))
+            return true
         }
     }
 
@@ -149,8 +175,13 @@ final class UnitService: ObservableObject {
             units.removeAll { $0.id == unit.id }
             return true
         } catch {
-            self.error = error.localizedDescription
-            return false
+            guard error is URLError else {
+                self.error = error.localizedDescription
+                return false
+            }
+            units.removeAll { $0.id == unit.id }
+            PMSyncService.shared.enqueue(.softDelete(table: "units", id: unit.id))
+            return true
         }
     }
 
@@ -165,8 +196,12 @@ final class UnitService: ObservableObject {
                 .eq("id", value: id)
                 .execute()
         } catch {
-            units[idx].leaseStatus = previous
-            self.error = error.localizedDescription
+            guard error is URLError else {
+                units[idx].leaseStatus = previous
+                self.error = error.localizedDescription
+                return
+            }
+            PMSyncService.shared.enqueue(.update(table: "units", id: id, payload: ["lease_status": .string(status.rawValue)]))
         }
     }
 
@@ -181,8 +216,12 @@ final class UnitService: ObservableObject {
                 .eq("id", value: id)
                 .execute()
         } catch {
-            units[idx].turnStatus = previous
-            self.error = error.localizedDescription
+            guard error is URLError else {
+                units[idx].turnStatus = previous
+                self.error = error.localizedDescription
+                return
+            }
+            PMSyncService.shared.enqueue(.update(table: "units", id: id, payload: ["turn_status": .string(status.rawValue)]))
         }
     }
 }
