@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { setProductMode } from "@/lib/actions";
 import type { Account, ProductMode } from "@/lib/types";
 
@@ -98,6 +99,19 @@ export function AccountSettings({ account }: { account: Account | null }) {
           <Row label="Plan" value={(account?.plan ?? "free").toUpperCase()} />
           <Row label="Type" value={account?.is_personal ? "Personal" : "Organization"} />
         </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold text-slate-900">Developer</h2>
+        <Link href="/dashboard/settings/developer" className="card flex items-center justify-between p-5 hover:border-slate-300">
+          <div>
+            <p className="font-medium text-slate-900">API keys</p>
+            <p className="text-sm text-slate-500">
+              Connect the <span className="font-medium">Collect Public API</span> to your other systems.
+            </p>
+          </div>
+          <span className="text-slate-400">→</span>
+        </Link>
       </section>
     </div>
   );

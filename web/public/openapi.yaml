@@ -1,0 +1,1113 @@
+openapi: 3.1.0
+info:
+  title: Collect Public API
+  version: "1.0"
+  description: |
+    The Collect Public API gives property management integrations
+    read/write access to your account's properties, buildings, units,
+    common areas, rooms, assets, inspections, work orders, capital
+    assets, and maintenance schedules.
+
+    ## Authentication
+    Every request must include an API key as a bearer token:
+
+    ```
+    Authorization: Bearer ck_live_xxxxxxxxxxxxxxxx
+    ```
+
+    Create and manage keys from **Dashboard → Settings → Developer**.
+    Keys have one of two scopes:
+
+    - `read` — list and get endpoints only
+    - `read_write` — full CRUD access
+
+    ## Pagination
+    List endpoints accept `limit` (default 50, max 200) and `offset`
+    (default 0) query parameters, and return `{ "data": [...], "total": N }`.
+
+    ## Soft deletes
+    `DELETE` requests soft-delete a record (sets `deleted_at`). Deleted
+    records are excluded from list/get responses.
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: "Your Collect API key, e.g. `Authorization: Bearer ck_live_...`"
+  responses:
+    Unauthorized:
+      description: Missing or invalid API key
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Forbidden:
+      description: API key does not have sufficient scope
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NotFound:
+      description: Record not found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+  parameters:
+    limit:
+      name: limit
+      in: query
+      description: Max records to return (default 50, max 200).
+      schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+    offset:
+      name: offset
+      in: query
+      description: Number of records to skip (default 0).
+      schema: { type: integer, minimum: 0, default: 0 }
+    id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  schemas:
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+    Property:
+      type: object
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        account_id: { type: string, format: uuid, readOnly: true }
+        name: { type: string }
+        address: { type: string }
+        created_at: { type: string, format: date-time, readOnly: true }
+        updated_at: { type: string, format: date-time, readOnly: true }
+    PropertyInput:
+      type: object
+      required: [name, address]
+      properties:
+        name: { type: string }
+        address: { type: string }
+    Building:
+      allOf:
+        - $ref: "#/components/schemas/BuildingInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid, readOnly: true }
+            account_id: { type: string, format: uuid, readOnly: true }
+            created_at: { type: string, format: date-time, readOnly: true }
+            updated_at: { type: string, format: date-time, readOnly: true }
+    BuildingInput:
+      type: object
+      required: [property_id, name]
+      properties:
+        property_id: { type: string, format: uuid }
+        name: { type: string }
+        address: { type: string }
+        floor_count: { type: integer, nullable: true }
+        year_built: { type: integer, nullable: true }
+    Unit:
+      allOf:
+        - $ref: "#/components/schemas/UnitInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid, readOnly: true }
+            account_id: { type: string, format: uuid, readOnly: true }
+            created_at: { type: string, format: date-time, readOnly: true }
+            updated_at: { type: string, format: date-time, readOnly: true }
+    UnitInput:
+      type: object
+      required: [property_id, unit_number]
+      properties:
+        property_id: { type: string, format: uuid }
+        building_id: { type: string, format: uuid, nullable: true }
+        unit_number: { type: string }
+        floor_number: { type: integer, nullable: true }
+        sqft: { type: number, nullable: true }
+        bedrooms: { type: integer, nullable: true }
+        bathrooms: { type: number, nullable: true }
+        lease_status: { type: string, enum: [vacant, occupied, notice, eviction] }
+        turn_status: { type: string, enum: [clean, needs_turn, in_progress, turned] }
+        current_tenant_name: { type: string, nullable: true }
+        lease_start: { type: string, format: date, nullable: true }
+        lease_end: { type: string, format: date, nullable: true }
+        monthly_rent: { type: number, nullable: true }
+        notes: { type: string }
+    CommonArea:
+      allOf:
+        - $ref: "#/components/schemas/CommonAreaInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid, readOnly: true }
+            account_id: { type: string, format: uuid, readOnly: true }
+            created_at: { type: string, format: date-time, readOnly: true }
+            updated_at: { type: string, format: date-time, readOnly: true }
+    CommonAreaInput:
+      type: object
+      required: [property_id, name]
+      properties:
+        property_id: { type: string, format: uuid }
+        building_id: { type: string, format: uuid, nullable: true }
+        name: { type: string }
+        area_type: { type: string, enum: [lobby, gym, pool, hallway, laundry, parking, office, other] }
+    Room:
+      allOf:
+        - $ref: "#/components/schemas/RoomInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid, readOnly: true }
+            account_id: { type: string, format: uuid, readOnly: true }
+    RoomInput:
+      type: object
+      required: [name]
+      properties:
+        floor_id: { type: string, format: uuid, nullable: true }
+        unit_id: { type: string, format: uuid, nullable: true }
+        common_area_id: { type: string, format: uuid, nullable: true }
+        name: { type: string }
+    Asset:
+      allOf:
+        - $ref: "#/components/schemas/AssetInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid, readOnly: true }
+            account_id: { type: string, format: uuid, readOnly: true }
+            created_at: { type: string, format: date-time, readOnly: true }
+            updated_at: { type: string, format: date-time, readOnly: true }
+    AssetInput:
+      type: object
+      required: [collection_id, name]
+      properties:
+        collection_id: { type: string, format: uuid }
+        name: { type: string }
+        category: { type: string }
+        asset_description: { type: string }
+        condition: { type: string, nullable: true }
+        quantity: { type: integer }
+        estimated_value: { type: number, nullable: true }
+        is_confirmed: { type: boolean }
+    Inspection:
+      allOf:
+        - $ref: "#/components/schemas/InspectionInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid, readOnly: true }
+            account_id: { type: string, format: uuid, readOnly: true }
+            created_at: { type: string, format: date-time, readOnly: true }
+            updated_at: { type: string, format: date-time, readOnly: true }
+    InspectionInput:
+      type: object
+      required: [unit_id, inspection_type]
+      properties:
+        unit_id: { type: string, format: uuid }
+        inspection_type: { type: string, enum: [move_in, move_out, routine, turn] }
+        status: { type: string, enum: [in_progress, completed, cancelled] }
+        inspector_id: { type: string, format: uuid, nullable: true }
+        scheduled_at: { type: string, format: date-time, nullable: true }
+        completed_at: { type: string, format: date-time, nullable: true }
+        notes: { type: string }
+        baseline_inspection_id: { type: string, format: uuid, nullable: true }
+    WorkOrder:
+      allOf:
+        - $ref: "#/components/schemas/WorkOrderInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid, readOnly: true }
+            account_id: { type: string, format: uuid, readOnly: true }
+            created_at: { type: string, format: date-time, readOnly: true }
+            updated_at: { type: string, format: date-time, readOnly: true }
+    WorkOrderInput:
+      type: object
+      required: [property_id, title]
+      properties:
+        property_id: { type: string, format: uuid }
+        building_id: { type: string, format: uuid, nullable: true }
+        unit_id: { type: string, format: uuid, nullable: true }
+        common_area_id: { type: string, format: uuid, nullable: true }
+        title: { type: string }
+        description: { type: string }
+        category: { type: string, enum: [plumbing, electrical, hvac, appliance, structural, pest, safety, cosmetic, other] }
+        priority: { type: string, enum: [low, medium, high, urgent] }
+        status: { type: string, enum: [open, in_progress, completed, cancelled] }
+        assigned_to: { type: string, format: uuid, nullable: true }
+        reported_by: { type: string, format: uuid, nullable: true }
+        due_date: { type: string, format: date, nullable: true }
+        completed_at: { type: string, format: date-time, nullable: true }
+        source_inspection_id: { type: string, format: uuid, nullable: true }
+    CapitalAsset:
+      allOf:
+        - $ref: "#/components/schemas/CapitalAssetInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid, readOnly: true }
+            account_id: { type: string, format: uuid, readOnly: true }
+            created_at: { type: string, format: date-time, readOnly: true }
+            updated_at: { type: string, format: date-time, readOnly: true }
+    CapitalAssetInput:
+      type: object
+      required: [property_id, name]
+      properties:
+        property_id: { type: string, format: uuid }
+        building_id: { type: string, format: uuid, nullable: true }
+        unit_id: { type: string, format: uuid, nullable: true }
+        common_area_id: { type: string, format: uuid, nullable: true }
+        name: { type: string }
+        asset_type: { type: string, enum: [hvac, roof, water_heater, appliance, electrical_panel, plumbing, elevator, structural, other] }
+        manufacturer: { type: string }
+        model: { type: string }
+        serial_number: { type: string }
+        install_date: { type: string, format: date, nullable: true }
+        expected_lifespan_years: { type: integer, nullable: true }
+        purchase_cost: { type: number, nullable: true }
+        condition: { type: string, enum: [excellent, good, fair, poor, needs_replacement] }
+        warranty_expires: { type: string, format: date, nullable: true }
+        last_serviced_at: { type: string, format: date, nullable: true }
+        notes: { type: string }
+    MaintenanceSchedule:
+      allOf:
+        - $ref: "#/components/schemas/MaintenanceScheduleInput"
+        - type: object
+          properties:
+            id: { type: string, format: uuid, readOnly: true }
+            account_id: { type: string, format: uuid, readOnly: true }
+            created_at: { type: string, format: date-time, readOnly: true }
+            updated_at: { type: string, format: date-time, readOnly: true }
+    MaintenanceScheduleInput:
+      type: object
+      required: [property_id, title, frequency, next_due_date]
+      properties:
+        property_id: { type: string, format: uuid }
+        building_id: { type: string, format: uuid, nullable: true }
+        unit_id: { type: string, format: uuid, nullable: true }
+        common_area_id: { type: string, format: uuid, nullable: true }
+        title: { type: string }
+        description: { type: string }
+        category: { type: string, enum: [plumbing, electrical, hvac, appliance, structural, pest, safety, cosmetic, other] }
+        frequency: { type: string, enum: [daily, weekly, monthly, quarterly, semiannual, annual] }
+        next_due_date: { type: string, format: date }
+        last_completed_at: { type: string, format: date-time, nullable: true }
+        assigned_to: { type: string, format: uuid, nullable: true }
+        active: { type: boolean }
+paths:
+  /properties:
+    get:
+      summary: List properties
+      tags: [Properties]
+      parameters:
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/offset"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/Property" } }
+                  total: { type: integer }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    post:
+      summary: Create a property
+      tags: [Properties]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PropertyInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/Property" } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+  /properties/{id}:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      summary: Get a property
+      tags: [Properties]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/Property" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      summary: Update a property
+      tags: [Properties]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PropertyInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/Property" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      summary: Soft-delete a property
+      tags: [Properties]
+      responses:
+        "204": { description: Deleted }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /buildings:
+    get:
+      summary: List buildings
+      tags: [Buildings]
+      parameters:
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/offset"
+        - name: property_id
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/Building" } }
+                  total: { type: integer }
+    post:
+      summary: Create a building
+      tags: [Buildings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BuildingInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/Building" } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /buildings/{id}:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      summary: Get a building
+      tags: [Buildings]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/Building" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      summary: Update a building
+      tags: [Buildings]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BuildingInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/Building" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      summary: Soft-delete a building
+      tags: [Buildings]
+      responses:
+        "204": { description: Deleted }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /units:
+    get:
+      summary: List units
+      tags: [Units]
+      parameters:
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/offset"
+        - name: property_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: building_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: lease_status
+          in: query
+          schema: { type: string, enum: [vacant, occupied, notice, eviction] }
+        - name: turn_status
+          in: query
+          schema: { type: string, enum: [clean, needs_turn, in_progress, turned] }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/Unit" } }
+                  total: { type: integer }
+    post:
+      summary: Create a unit
+      tags: [Units]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UnitInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/Unit" } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /units/{id}:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      summary: Get a unit
+      tags: [Units]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/Unit" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      summary: Update a unit
+      tags: [Units]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UnitInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/Unit" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      summary: Soft-delete a unit
+      tags: [Units]
+      responses:
+        "204": { description: Deleted }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /common-areas:
+    get:
+      summary: List common areas
+      tags: [Common Areas]
+      parameters:
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/offset"
+        - name: property_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: building_id
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/CommonArea" } }
+                  total: { type: integer }
+    post:
+      summary: Create a common area
+      tags: [Common Areas]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CommonAreaInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/CommonArea" } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /common-areas/{id}:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      summary: Get a common area
+      tags: [Common Areas]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/CommonArea" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      summary: Update a common area
+      tags: [Common Areas]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CommonAreaInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/CommonArea" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      summary: Soft-delete a common area
+      tags: [Common Areas]
+      responses:
+        "204": { description: Deleted }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /rooms:
+    get:
+      summary: List rooms
+      tags: [Rooms]
+      parameters:
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/offset"
+        - name: floor_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: unit_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: common_area_id
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/Room" } }
+                  total: { type: integer }
+    post:
+      summary: Create a room
+      tags: [Rooms]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RoomInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/Room" } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /rooms/{id}:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      summary: Get a room
+      tags: [Rooms]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/Room" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      summary: Update a room
+      tags: [Rooms]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RoomInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/Room" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      summary: Soft-delete a room
+      tags: [Rooms]
+      responses:
+        "204": { description: Deleted }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /assets:
+    get:
+      summary: List assets
+      tags: [Assets]
+      parameters:
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/offset"
+        - name: collection_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: listing_status
+          in: query
+          schema: { type: string, enum: [not_listed, ready, listed, pending, sold] }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/Asset" } }
+                  total: { type: integer }
+    post:
+      summary: Create an asset
+      tags: [Assets]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AssetInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/Asset" } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /assets/{id}:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      summary: Get an asset
+      tags: [Assets]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/Asset" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      summary: Update an asset
+      tags: [Assets]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AssetInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/Asset" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      summary: Soft-delete an asset
+      tags: [Assets]
+      responses:
+        "204": { description: Deleted }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /inspections:
+    get:
+      summary: List inspections
+      tags: [Inspections]
+      parameters:
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/offset"
+        - name: unit_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          schema: { type: string, enum: [in_progress, completed, cancelled] }
+        - name: inspection_type
+          in: query
+          schema: { type: string, enum: [move_in, move_out, routine, turn] }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/Inspection" } }
+                  total: { type: integer }
+    post:
+      summary: Create an inspection
+      tags: [Inspections]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InspectionInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/Inspection" } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /inspections/{id}:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      summary: Get an inspection
+      tags: [Inspections]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/Inspection" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      summary: Update an inspection
+      tags: [Inspections]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InspectionInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/Inspection" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      summary: Soft-delete an inspection
+      tags: [Inspections]
+      responses:
+        "204": { description: Deleted }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /work-orders:
+    get:
+      summary: List work orders
+      tags: [Work Orders]
+      parameters:
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/offset"
+        - name: property_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: building_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: unit_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: common_area_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          schema: { type: string, enum: [open, in_progress, completed, cancelled] }
+        - name: priority
+          in: query
+          schema: { type: string, enum: [low, medium, high, urgent] }
+        - name: category
+          in: query
+          schema: { type: string, enum: [plumbing, electrical, hvac, appliance, structural, pest, safety, cosmetic, other] }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/WorkOrder" } }
+                  total: { type: integer }
+    post:
+      summary: Create a work order
+      tags: [Work Orders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WorkOrderInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/WorkOrder" } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /work-orders/{id}:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      summary: Get a work order
+      tags: [Work Orders]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/WorkOrder" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      summary: Update a work order
+      tags: [Work Orders]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WorkOrderInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/WorkOrder" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      summary: Soft-delete a work order
+      tags: [Work Orders]
+      responses:
+        "204": { description: Deleted }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /capital-assets:
+    get:
+      summary: List capital assets
+      tags: [Capital Assets]
+      parameters:
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/offset"
+        - name: property_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: building_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: unit_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: common_area_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: asset_type
+          in: query
+          schema: { type: string, enum: [hvac, roof, water_heater, appliance, electrical_panel, plumbing, elevator, structural, other] }
+        - name: condition
+          in: query
+          schema: { type: string, enum: [excellent, good, fair, poor, needs_replacement] }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/CapitalAsset" } }
+                  total: { type: integer }
+    post:
+      summary: Create a capital asset
+      tags: [Capital Assets]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CapitalAssetInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/CapitalAsset" } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /capital-assets/{id}:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      summary: Get a capital asset
+      tags: [Capital Assets]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/CapitalAsset" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      summary: Update a capital asset
+      tags: [Capital Assets]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CapitalAssetInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/CapitalAsset" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      summary: Soft-delete a capital asset
+      tags: [Capital Assets]
+      responses:
+        "204": { description: Deleted }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /maintenance-schedules:
+    get:
+      summary: List maintenance schedules
+      tags: [Maintenance Schedules]
+      parameters:
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/offset"
+        - name: property_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: building_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: unit_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: common_area_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: frequency
+          in: query
+          schema: { type: string, enum: [daily, weekly, monthly, quarterly, semiannual, annual] }
+        - name: active
+          in: query
+          schema: { type: boolean }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/MaintenanceSchedule" } }
+                  total: { type: integer }
+    post:
+      summary: Create a maintenance schedule
+      tags: [Maintenance Schedules]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MaintenanceScheduleInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/MaintenanceSchedule" } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /maintenance-schedules/{id}:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      summary: Get a maintenance schedule
+      tags: [Maintenance Schedules]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/MaintenanceSchedule" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      summary: Update a maintenance schedule
+      tags: [Maintenance Schedules]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MaintenanceScheduleInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/MaintenanceSchedule" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      summary: Soft-delete a maintenance schedule
+      tags: [Maintenance Schedules]
+      responses:
+        "204": { description: Deleted }
+        "404": { $ref: "#/components/responses/NotFound" }
