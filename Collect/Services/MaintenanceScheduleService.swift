@@ -1,4 +1,5 @@
 import Foundation
+import Supabase
 
 /// Manages preventive maintenance schedules for a property (optionally
 /// scoped to a unit). Server-driven; PM mode only.
@@ -90,8 +91,45 @@ final class MaintenanceScheduleService: ObservableObject {
             schedules.sort { $0.nextDueDate < $1.nextDueDate }
             return row
         } catch {
-            self.error = error.localizedDescription
-            return nil
+            guard error is URLError else {
+                self.error = error.localizedDescription
+                return nil
+            }
+            let now = Date()
+            let localID = UUID().uuidString.lowercased()
+            let row = PMMaintenanceSchedule(
+                id: localID,
+                propertyID: propertyID,
+                buildingID: buildingID,
+                unitID: unitID,
+                commonAreaID: commonAreaID,
+                title: title,
+                description: description,
+                category: category,
+                frequency: frequency,
+                nextDueDate: nextDueDate,
+                lastCompletedAt: nil,
+                assignedTo: nil,
+                active: true,
+                createdAt: now,
+                updatedAt: now
+            )
+            var syncPayload: [String: AnyJSON] = [
+                "property_id":   .string(propertyID),
+                "title":         .string(title),
+                "description":   .string(description),
+                "category":      .string(category.rawValue),
+                "frequency":     .string(frequency.rawValue),
+                "next_due_date": .string(nextDueDate),
+            ]
+            if let buildingID { syncPayload["building_id"] = .string(buildingID) }
+            if let unitID { syncPayload["unit_id"] = .string(unitID) }
+            if let commonAreaID { syncPayload["common_area_id"] = .string(commonAreaID) }
+
+            schedules.append(row)
+            schedules.sort { $0.nextDueDate < $1.nextDueDate }
+            PMSyncService.shared.enqueue(.insert(table: "maintenance_schedules", localID: localID, payload: syncPayload))
+            return row
         }
     }
 
@@ -115,8 +153,12 @@ final class MaintenanceScheduleService: ObservableObject {
                 self.error = "You don't have permission to update this schedule."
             }
         } catch {
-            schedules[idx].active = previous
-            self.error = error.localizedDescription
+            guard error is URLError else {
+                schedules[idx].active = previous
+                self.error = error.localizedDescription
+                return
+            }
+            PMSyncService.shared.enqueue(.update(table: "maintenance_schedules", id: schedule.id, payload: ["active": .bool(active)]))
         }
     }
 
@@ -160,9 +202,21 @@ final class MaintenanceScheduleService: ObservableObject {
             schedules.sort { $0.nextDueDate < $1.nextDueDate }
             return true
         } catch {
-            schedules[idx] = previous
-            self.error = error.localizedDescription
-            return false
+            guard error is URLError else {
+                schedules[idx] = previous
+                self.error = error.localizedDescription
+                return false
+            }
+            let payload: [String: AnyJSON] = [
+                "title": .string(title),
+                "description": .string(description),
+                "category": .string(category.rawValue),
+                "frequency": .string(frequency.rawValue),
+                "next_due_date": .string(nextDueDate),
+            ]
+            schedules.sort { $0.nextDueDate < $1.nextDueDate }
+            PMSyncService.shared.enqueue(.update(table: "maintenance_schedules", id: schedule.id, payload: payload))
+            return true
         }
     }
 
@@ -185,8 +239,13 @@ final class MaintenanceScheduleService: ObservableObject {
             schedules.removeAll { $0.id == schedule.id }
             return true
         } catch {
-            self.error = error.localizedDescription
-            return false
+            guard error is URLError else {
+                self.error = error.localizedDescription
+                return false
+            }
+            schedules.removeAll { $0.id == schedule.id }
+            PMSyncService.shared.enqueue(.softDelete(table: "maintenance_schedules", id: schedule.id))
+            return true
         }
     }
 }

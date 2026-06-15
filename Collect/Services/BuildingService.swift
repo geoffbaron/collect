@@ -1,4 +1,5 @@
 import Foundation
+import Supabase
 
 /// Loads and manages buildings for a given property. Server-driven; PM mode only.
 @MainActor
@@ -45,8 +46,32 @@ final class BuildingService: ObservableObject {
             buildings.append(row)
             return row
         } catch {
-            self.error = error.localizedDescription
-            return nil
+            guard error is URLError else {
+                self.error = error.localizedDescription
+                return nil
+            }
+            let now = Date()
+            let localID = UUID().uuidString.lowercased()
+            let trimmedName = name.trimmingCharacters(in: .whitespaces)
+            let trimmedAddress = address.trimmingCharacters(in: .whitespaces)
+            let row = PMBuilding(
+                id: localID,
+                propertyID: propertyID,
+                name: trimmedName,
+                address: trimmedAddress,
+                floorCount: nil,
+                yearBuilt: nil,
+                createdAt: now,
+                updatedAt: now
+            )
+            let syncPayload: [String: AnyJSON] = [
+                "property_id": .string(propertyID),
+                "name":        .string(trimmedName),
+                "address":     .string(trimmedAddress),
+            ]
+            buildings.append(row)
+            PMSyncService.shared.enqueue(.insert(table: "buildings", localID: localID, payload: syncPayload))
+            return row
         }
     }
 
@@ -59,7 +84,12 @@ final class BuildingService: ObservableObject {
                 .execute()
             buildings.removeAll { $0.id == building.id }
         } catch {
-            self.error = error.localizedDescription
+            guard error is URLError else {
+                self.error = error.localizedDescription
+                return
+            }
+            buildings.removeAll { $0.id == building.id }
+            PMSyncService.shared.enqueue(.softDelete(table: "buildings", id: building.id))
         }
     }
 }

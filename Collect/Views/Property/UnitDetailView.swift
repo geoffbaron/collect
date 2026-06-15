@@ -5,6 +5,14 @@ struct UnitDetailView: View {
     let unit: PMUnit
     let unitService: UnitService
 
+    @Environment(\.dismiss) private var dismiss
+    @State private var showEditUnit = false
+
+    /// Latest copy from the service, so edits show without re-navigating.
+    private var current: PMUnit {
+        unitService.units.first { $0.id == unit.id } ?? unit
+    }
+
     @StateObject private var inspectionService = InspectionService()
     @State private var showInspectionFlow = false
     @State private var activeInspection: PMInspection?
@@ -46,14 +54,14 @@ struct UnitDetailView: View {
 
             // Unit info
             Section {
-                LabeledContent("Unit", value: unit.unitNumber)
-                if let floor = unit.floorNumber {
+                LabeledContent("Unit", value: current.unitNumber)
+                if let floor = current.floorNumber {
                     LabeledContent("Floor", value: "\(floor)")
                 }
-                if !unit.sizeLabel.isEmpty {
-                    LabeledContent("Size", value: unit.sizeLabel)
+                if !current.sizeLabel.isEmpty {
+                    LabeledContent("Size", value: current.sizeLabel)
                 }
-                if let rent = unit.monthlyRent {
+                if let rent = current.monthlyRent {
                     LabeledContent("Rent", value: rent,
                                    format: .currency(code: "USD").precision(.fractionLength(0)))
                 }
@@ -64,18 +72,18 @@ struct UnitDetailView: View {
             // Lease
             Section {
                 Picker("Lease Status", selection: Binding(
-                    get: { unit.leaseStatus },
+                    get: { current.leaseStatus },
                     set: { new in Task { await unitService.updateLeaseStatus(of: unit.id, to: new) } }
                 )) {
                     ForEach(LeaseStatus.allCases, id: \.self) { s in
                         Text(s.displayName).tag(s)
                     }
                 }
-                if let tenant = unit.currentTenantName {
+                if let tenant = current.currentTenantName {
                     LabeledContent("Tenant", value: tenant)
                 }
-                if let start = unit.leaseStart { LabeledContent("Lease Start", value: start) }
-                if let end   = unit.leaseEnd   { LabeledContent("Lease End",   value: end)   }
+                if let start = current.leaseStart { LabeledContent("Lease Start", value: start.formattedAsDateOnly) }
+                if let end   = current.leaseEnd   { LabeledContent("Lease End",   value: end.formattedAsDateOnly)   }
             } header: {
                 Text("Lease")
             }
@@ -83,7 +91,7 @@ struct UnitDetailView: View {
             // Turn
             Section {
                 Picker("Turn Status", selection: Binding(
-                    get: { unit.turnStatus },
+                    get: { current.turnStatus },
                     set: { new in Task { await unitService.updateTurnStatus(of: unit.id, to: new) } }
                 )) {
                     ForEach(TurnStatus.allCases, id: \.self) { s in
@@ -201,14 +209,22 @@ struct UnitDetailView: View {
                 }
             }
 
-            if !unit.notes.isEmpty {
+            if !current.notes.isEmpty {
                 Section("Notes") {
-                    Text(unit.notes).foregroundStyle(.secondary)
+                    Text(current.notes).foregroundStyle(.secondary)
                 }
             }
         }
-        .navigationTitle("Unit \(unit.unitNumber)")
+        .navigationTitle("Unit \(current.unitNumber)")
         .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button("Edit") { showEditUnit = true }
+            }
+        }
+        .sheet(isPresented: $showEditUnit) {
+            EditUnitView(unit: current, unitService: unitService, onDeleted: { dismiss() })
+        }
         .task {
             await inspectionService.load(for: unit.id)
             await workOrderService.load(unitID: unit.id)

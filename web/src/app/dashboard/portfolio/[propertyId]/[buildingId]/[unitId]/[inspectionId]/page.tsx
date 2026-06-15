@@ -7,6 +7,7 @@ import {
 import { completeInspection } from "@/lib/actions";
 import { INSPECTION_TYPE_LABELS, INSPECTION_STATUS_LABELS } from "@/lib/types";
 import CompleteButton from "./CompleteButton";
+import CreateWorkOrderButton from "./CreateWorkOrderButton";
 
 export const dynamic = "force-dynamic";
 
@@ -114,6 +115,7 @@ export default async function InspectionDetailPage({
                     <th className="px-4 py-2 text-left font-medium">Move-In</th>
                     <th className="px-4 py-2 text-left font-medium">Move-Out</th>
                     <th className="px-4 py-2 text-left font-medium">Flag</th>
+                    <th className="px-4 py-2 text-left font-medium">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -133,6 +135,19 @@ export default async function InspectionDetailPage({
                         )}
                         {item.isDamaged && !item.isMissing && (
                           <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">Damaged</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {(item.isDamaged || item.isMissing) && (
+                          <CreateWorkOrderButton
+                            propertyId={property.id}
+                            buildingId={building.id}
+                            unitId={unit.id}
+                            inspectionId={inspection.id}
+                            itemName={item.name}
+                            roomName={room.roomName}
+                            isMissing={item.isMissing}
+                          />
                         )}
                       </td>
                     </tr>

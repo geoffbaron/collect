@@ -22,6 +22,11 @@ struct ContentView: View {
                 SignInView()
             }
         }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if authService.isAuthenticated {
+                PMSyncStatusBadge()
+            }
+        }
         .animation(.easeInOut, value: authService.isAuthenticated)
         .task {
             // Inject the main-thread context so SyncService can fetch models during drain

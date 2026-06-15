@@ -1,4 +1,5 @@
 import Foundation
+import Supabase
 
 /// Manages capital assets (major systems/equipment) for a property
 /// (optionally scoped to a unit). Server-driven; PM mode only.
@@ -93,8 +94,50 @@ final class CapitalAssetService: ObservableObject {
             capitalAssets.insert(row, at: 0)
             return row
         } catch {
-            self.error = error.localizedDescription
-            return nil
+            guard error is URLError else {
+                self.error = error.localizedDescription
+                return nil
+            }
+            let now = Date()
+            let localID = UUID().uuidString.lowercased()
+            let row = PMCapitalAsset(
+                id: localID,
+                propertyID: propertyID,
+                buildingID: buildingID,
+                unitID: unitID,
+                commonAreaID: commonAreaID,
+                name: name,
+                assetType: assetType,
+                manufacturer: manufacturer,
+                model: model,
+                serialNumber: serialNumber,
+                installDate: installDate,
+                expectedLifespanYears: nil,
+                purchaseCost: nil,
+                condition: condition,
+                warrantyExpires: nil,
+                lastServicedAt: nil,
+                notes: "",
+                createdAt: now,
+                updatedAt: now
+            )
+            var syncPayload: [String: AnyJSON] = [
+                "property_id":   .string(propertyID),
+                "name":          .string(name),
+                "asset_type":    .string(assetType.rawValue),
+                "manufacturer":  .string(manufacturer),
+                "model":         .string(model),
+                "serial_number": .string(serialNumber),
+                "condition":     .string(condition.rawValue),
+            ]
+            if let buildingID { syncPayload["building_id"] = .string(buildingID) }
+            if let unitID { syncPayload["unit_id"] = .string(unitID) }
+            if let commonAreaID { syncPayload["common_area_id"] = .string(commonAreaID) }
+            if let installDate { syncPayload["install_date"] = .string(installDate) }
+
+            capitalAssets.insert(row, at: 0)
+            PMSyncService.shared.enqueue(.insert(table: "capital_assets", localID: localID, payload: syncPayload))
+            return row
         }
     }
 
@@ -118,8 +161,12 @@ final class CapitalAssetService: ObservableObject {
                 self.error = "You don't have permission to update this asset."
             }
         } catch {
-            capitalAssets[idx].condition = previous
-            self.error = error.localizedDescription
+            guard error is URLError else {
+                capitalAssets[idx].condition = previous
+                self.error = error.localizedDescription
+                return
+            }
+            PMSyncService.shared.enqueue(.update(table: "capital_assets", id: asset.id, payload: ["condition": .string(condition.rawValue)]))
         }
     }
 
@@ -174,9 +221,24 @@ final class CapitalAssetService: ObservableObject {
             }
             return true
         } catch {
-            capitalAssets[idx] = previous
-            self.error = error.localizedDescription
-            return false
+            guard error is URLError else {
+                capitalAssets[idx] = previous
+                self.error = error.localizedDescription
+                return false
+            }
+            let payload: [String: AnyJSON] = [
+                "name": .string(name),
+                "asset_type": .string(assetType.rawValue),
+                "manufacturer": .string(manufacturer),
+                "model": .string(model),
+                "serial_number": .string(serialNumber),
+                "install_date": installDate.map { .string($0) } ?? .null,
+                "warranty_expires": warrantyExpires.map { .string($0) } ?? .null,
+                "last_serviced_at": lastServicedAt.map { .string($0) } ?? .null,
+                "notes": .string(notes),
+            ]
+            PMSyncService.shared.enqueue(.update(table: "capital_assets", id: asset.id, payload: payload))
+            return true
         }
     }
 
@@ -199,8 +261,13 @@ final class CapitalAssetService: ObservableObject {
             capitalAssets.removeAll { $0.id == asset.id }
             return true
         } catch {
-            self.error = error.localizedDescription
-            return false
+            guard error is URLError else {
+                self.error = error.localizedDescription
+                return false
+            }
+            capitalAssets.removeAll { $0.id == asset.id }
+            PMSyncService.shared.enqueue(.softDelete(table: "capital_assets", id: asset.id))
+            return true
         }
     }
 }

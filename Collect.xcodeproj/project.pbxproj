@@ -69,6 +69,10 @@
 		A2D0AC /* WorkOrderDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D0AC /* WorkOrderDetailView.swift */; };
 		A2E0AC /* PropertyWorkOrdersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2E0AC /* PropertyWorkOrdersView.swift */; };
 		A400AD /* MyWorkOrdersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B400AD /* MyWorkOrdersView.swift */; };
+		A410AD /* EditUnitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B410AD /* EditUnitView.swift */; };
+		A420AD /* CommonAreaService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B420AD /* CommonAreaService.swift */; };
+		A430AD /* PMSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B430AD /* PMSyncService.swift */; };
+		A440AD /* PMSyncStatusBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B440AD /* PMSyncStatusBadge.swift */; };
 		A2F0AC /* PMCapitalAsset.swift in Sources */      = {isa = PBXBuildFile; fileRef = B2F0AC /* PMCapitalAsset.swift */; };
 		A300AC /* CapitalAssetService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B300AC /* CapitalAssetService.swift */; };
 		A310AC /* NewCapitalAssetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B310AC /* NewCapitalAssetView.swift */; };
@@ -160,6 +164,10 @@
 		B2D0AC /* WorkOrderDetailView.swift */  = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkOrderDetailView.swift;  sourceTree = "<group>"; };
 		B2E0AC /* PropertyWorkOrdersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyWorkOrdersView.swift; sourceTree = "<group>"; };
 		B400AD /* MyWorkOrdersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyWorkOrdersView.swift; sourceTree = "<group>"; };
+		B410AD /* EditUnitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditUnitView.swift; sourceTree = "<group>"; };
+		B420AD /* CommonAreaService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonAreaService.swift; sourceTree = "<group>"; };
+		B430AD /* PMSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PMSyncService.swift; sourceTree = "<group>"; };
+		B440AD /* PMSyncStatusBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PMSyncStatusBadge.swift; sourceTree = "<group>"; };
 		B2F0AC /* PMCapitalAsset.swift */       = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PMCapitalAsset.swift;       sourceTree = "<group>"; };
 		B300AC /* CapitalAssetService.swift */  = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapitalAssetService.swift;  sourceTree = "<group>"; };
 		B310AC /* NewCapitalAssetView.swift */  = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewCapitalAssetView.swift;  sourceTree = "<group>"; };
@@ -262,6 +270,8 @@
 				B2B0AC /* WorkOrderService.swift */,
 				B300AC /* CapitalAssetService.swift */,
 				B350AC /* MaintenanceScheduleService.swift */,
+				B420AD /* CommonAreaService.swift */,
+				B430AD /* PMSyncService.swift */,
 				B10063 /* LimitsService.swift */,
 				B10066 /* SyncService.swift */,
 				B10067 /* CloudRepository.swift */,
@@ -346,6 +356,7 @@
 				B2D0AC /* WorkOrderDetailView.swift */,
 				B2E0AC /* PropertyWorkOrdersView.swift */,
 				B400AD /* MyWorkOrdersView.swift */,
+				B410AD /* EditUnitView.swift */,
 				B310AC /* NewCapitalAssetView.swift */,
 				B320AC /* CapitalAssetDetailView.swift */,
 				B330AC /* PropertyCapitalAssetsView.swift */,
@@ -409,6 +420,7 @@
 				B10032 /* ShareSheet.swift */,
 				B10033 /* OnboardingView.swift */,
 				B3C0AC /* ErrorBanner.swift */,
+				B440AD /* PMSyncStatusBadge.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -565,6 +577,10 @@
 				A2D0AC /* WorkOrderDetailView.swift in Sources */,
 				A2E0AC /* PropertyWorkOrdersView.swift in Sources */,
 				A400AD /* MyWorkOrdersView.swift in Sources */,
+				A410AD /* EditUnitView.swift in Sources */,
+				A420AD /* CommonAreaService.swift in Sources */,
+				A430AD /* PMSyncService.swift in Sources */,
+				A440AD /* PMSyncStatusBadge.swift in Sources */,
 				A2F0AC /* PMCapitalAsset.swift in Sources */,
 				A300AC /* CapitalAssetService.swift in Sources */,
 				A310AC /* NewCapitalAssetView.swift in Sources */,

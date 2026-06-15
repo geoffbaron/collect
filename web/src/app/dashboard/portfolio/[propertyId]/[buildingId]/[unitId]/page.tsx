@@ -4,6 +4,7 @@ import { getAccount, getBuildings, getCapitalAssets, getInspections, getMaintena
 import { CAPITAL_ASSET_CONDITION_LABELS, CAPITAL_ASSET_TYPE_LABELS, INSPECTION_STATUS_LABELS, INSPECTION_TYPE_LABELS, LEASE_STATUS_LABELS, MAINTENANCE_FREQUENCY_LABELS, TURN_STATUS_LABELS, WORK_ORDER_CATEGORY_LABELS, WORK_ORDER_STATUS_LABELS } from "@/lib/types";
 import { formatDateOnly, localDateString } from "@/lib/dates";
 import StartInspectionForm from "./StartInspectionForm";
+import EditUnitForm from "./EditUnitForm";
 
 export const dynamic = "force-dynamic";
 
@@ -49,10 +50,15 @@ export default async function UnitDetailPage({
           <span className="mx-1">›</span>
           <span className="text-slate-900">Unit {unit.unit_number}</span>
         </div>
-        <h1 className="mt-1 text-2xl font-bold text-slate-900">Unit {unit.unit_number}</h1>
-        {unit.current_tenant_name && (
-          <p className="text-slate-500">{unit.current_tenant_name}</p>
-        )}
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="mt-1 text-2xl font-bold text-slate-900">Unit {unit.unit_number}</h1>
+            {unit.current_tenant_name && (
+              <p className="text-slate-500">{unit.current_tenant_name}</p>
+            )}
+          </div>
+          <EditUnitForm unit={unit} propertyId={property.id} buildingId={building.id} />
+        </div>
       </div>
 
       {/* Unit info cards */}

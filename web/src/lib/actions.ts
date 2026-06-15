@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import type { CapitalAssetCondition, CapitalAssetType, InspectionType, LeaseStatus, MaintenanceFrequency, ProductMode, TurnStatus, WorkOrderCategory, WorkOrderPriority, WorkOrderStatus } from "@/lib/types";
+import type { AreaType, CapitalAssetCondition, CapitalAssetType, InspectionType, LeaseStatus, MaintenanceFrequency, ProductMode, TurnStatus, WorkOrderCategory, WorkOrderPriority, WorkOrderStatus } from "@/lib/types";
 
 /**
  * Switches the signed-in account between the homeowner and property-manager
@@ -150,6 +150,211 @@ export async function updateUnitStatus(
   const { error } = await supabase.from("units").update(patch).eq("id", id);
   revalidatePath(`/dashboard/portfolio/${propertyId}/${buildingId}`);
   return { ok: !error, error: error?.message };
+}
+
+// ── Portfolio record management (Phase 5) ───────────────────
+// Create/edit/delete for properties, buildings, units, and common areas —
+// previously these could only be created (and properties only from iOS).
+
+/**
+ * Creates a property from the web dashboard. properties.id has no default
+ * (iOS supplies its own UUIDs), so we generate one here; user_id is the
+ * creator, account_id comes from the set_account_id trigger.
+ */
+export async function createProperty(name: string, address = "") {
+  const trimmed = name.trim();
+  if (!trimmed) return { ok: false, error: "Name is required.", property: null };
+
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Not signed in.", property: null };
+
+  const { data, error } = await supabase
+    .from("properties")
+    .insert({ id: crypto.randomUUID(), user_id: user.id, name: trimmed, address: address.trim() })
+    .select()
+    .single();
+  if (error) return { ok: false, error: error.message, property: null };
+  revalidatePath("/dashboard");
+  return { ok: true, error: null, property: data };
+}
+
+export async function updateProperty(id: string, input: { name: string; address?: string }) {
+  const name = input.name.trim();
+  if (!name) return { ok: false, error: "Name is required." };
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("properties")
+    .update({ name, address: input.address?.trim() ?? "" })
+    .eq("id", id)
+    .select("id");
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) return { ok: false, error: "You don't have permission to update this property." };
+  revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/portfolio/${id}`);
+  return { ok: true, error: null };
+}
+
+export async function deleteProperty(id: string) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("properties")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .select("id");
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) return { ok: false, error: "You don't have permission to delete this property." };
+  revalidatePath("/dashboard");
+  return { ok: true, error: null };
+}
+
+export async function updateBuilding(id: string, propertyId: string, input: { name: string; address?: string }) {
+  const name = input.name.trim();
+  if (!name) return { ok: false, error: "Name is required." };
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("buildings")
+    .update({ name, address: input.address?.trim() ?? "" })
+    .eq("id", id)
+    .select("id");
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) return { ok: false, error: "You don't have permission to update this building." };
+  revalidatePath(`/dashboard/portfolio/${propertyId}`);
+  revalidatePath(`/dashboard/portfolio/${propertyId}/${id}`);
+  return { ok: true, error: null };
+}
+
+export async function deleteBuilding(id: string, propertyId: string) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("buildings")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .select("id");
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) return { ok: false, error: "You don't have permission to delete this building." };
+  revalidatePath(`/dashboard/portfolio/${propertyId}`);
+  return { ok: true, error: null };
+}
+
+/**
+ * Edits a unit's details, including the lease/tenant fields (tenant name,
+ * lease dates, rent) that were previously display-only everywhere — lease
+ * renewals and tenant changes are recorded here.
+ */
+export async function updateUnit(
+  id: string,
+  propertyId: string,
+  buildingId: string,
+  input: {
+    unitNumber: string;
+    floorNumber?: number | null;
+    sqft?: number | null;
+    bedrooms?: number | null;
+    bathrooms?: number | null;
+    currentTenantName?: string | null;
+    leaseStart?: string | null;
+    leaseEnd?: string | null;
+    monthlyRent?: number | null;
+    notes?: string;
+  }
+) {
+  const unitNumber = input.unitNumber.trim();
+  if (!unitNumber) return { ok: false, error: "Unit number is required." };
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("units")
+    .update({
+      unit_number: unitNumber,
+      floor_number: input.floorNumber ?? null,
+      sqft: input.sqft ?? null,
+      bedrooms: input.bedrooms ?? null,
+      bathrooms: input.bathrooms ?? null,
+      current_tenant_name: input.currentTenantName?.trim() || null,
+      lease_start: input.leaseStart || null,
+      lease_end: input.leaseEnd || null,
+      monthly_rent: input.monthlyRent ?? null,
+      notes: input.notes ?? "",
+    })
+    .eq("id", id)
+    .select("id");
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) return { ok: false, error: "You don't have permission to update this unit." };
+  revalidatePath(`/dashboard/portfolio/${propertyId}/${buildingId}`);
+  revalidatePath(`/dashboard/portfolio/${propertyId}/${buildingId}/${id}`);
+  return { ok: true, error: null };
+}
+
+export async function deleteUnit(id: string, propertyId: string, buildingId: string) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("units")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .select("id");
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) return { ok: false, error: "You don't have permission to delete this unit." };
+  revalidatePath(`/dashboard/portfolio/${propertyId}/${buildingId}`);
+  return { ok: true, error: null };
+}
+
+export async function createCommonArea(input: {
+  propertyId: string;
+  buildingId?: string | null;
+  name: string;
+  areaType: AreaType;
+}) {
+  const name = input.name.trim();
+  if (!name) return { ok: false, error: "Name is required.", commonArea: null };
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("common_areas")
+    .insert({
+      property_id: input.propertyId,
+      building_id: input.buildingId ?? null,
+      name,
+      area_type: input.areaType,
+    })
+    .select()
+    .single();
+  if (error) return { ok: false, error: error.message, commonArea: null };
+  revalidatePath(`/dashboard/portfolio/${input.propertyId}`);
+  return { ok: true, error: null, commonArea: data };
+}
+
+export async function updateCommonArea(
+  id: string,
+  propertyId: string,
+  input: { name: string; areaType: AreaType }
+) {
+  const name = input.name.trim();
+  if (!name) return { ok: false, error: "Name is required." };
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("common_areas")
+    .update({ name, area_type: input.areaType })
+    .eq("id", id)
+    .select("id");
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) return { ok: false, error: "You don't have permission to update this common area." };
+  revalidatePath(`/dashboard/portfolio/${propertyId}`);
+  return { ok: true, error: null };
+}
+
+export async function deleteCommonArea(id: string, propertyId: string) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("common_areas")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .select("id");
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) return { ok: false, error: "You don't have permission to delete this common area." };
+  revalidatePath(`/dashboard/portfolio/${propertyId}`);
+  return { ok: true, error: null };
 }
 
 /**
@@ -326,6 +531,7 @@ export async function createWorkOrder(input: {
   priority: WorkOrderPriority;
   dueDate?: string | null;
   assignedTo?: string | null;
+  sourceInspectionId?: string | null;
 }) {
   const title = input.title.trim();
   if (!title) return { ok: false, error: "Title is required.", workOrder: null };
@@ -344,6 +550,7 @@ export async function createWorkOrder(input: {
       priority: input.priority,
       due_date: input.dueDate ?? null,
       assigned_to: input.assignedTo ?? null,
+      source_inspection_id: input.sourceInspectionId ?? null,
     })
     .select()
     .single();

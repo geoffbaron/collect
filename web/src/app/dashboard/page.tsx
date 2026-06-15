@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getAccount, getAssetsWithLocation, getBuildingCountsByProperty, getMyPendingInvite, getOpenWorkOrders, getOverdueMaintenanceSchedules, getPortfolioVacancySummary, getProperties } from "@/lib/data";
 import { JoinInviteBanner } from "@/components/JoinInviteBanner";
+import AddPropertyForm from "./AddPropertyForm";
 import { WORK_ORDER_PRIORITY_LABELS } from "@/lib/types";
 import { formatDateOnly } from "@/lib/dates";
 
@@ -82,9 +83,12 @@ export default async function DashboardPage() {
               : "Everything you've collected, at a glance."}
           </p>
         </div>
-        <Link href="/dashboard/items" className="btn-primary">
-          {isPM ? "Manage inventory" : "Manage items"}
-        </Link>
+        <div className="flex items-center gap-2">
+          {isPM && <AddPropertyForm />}
+          <Link href="/dashboard/items" className="btn-primary">
+            {isPM ? "Manage inventory" : "Manage items"}
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
