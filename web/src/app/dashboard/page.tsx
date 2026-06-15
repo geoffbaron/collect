@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { getAccount, getAssetsWithLocation, getBuildingCountsByProperty, getOpenWorkOrders, getOverdueMaintenanceSchedules, getPortfolioVacancySummary, getProperties } from "@/lib/data";
+import { getAccount, getAssetsWithLocation, getBuildingCountsByProperty, getMyPendingInvite, getOpenWorkOrders, getOverdueMaintenanceSchedules, getPortfolioVacancySummary, getProperties } from "@/lib/data";
+import { JoinInviteBanner } from "@/components/JoinInviteBanner";
 import { WORK_ORDER_PRIORITY_LABELS } from "@/lib/types";
 import { formatDateOnly } from "@/lib/dates";
 
@@ -9,7 +10,11 @@ const fmt = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
 export default async function DashboardPage() {
-  const [account, properties] = await Promise.all([getAccount(), getProperties()]);
+  const [account, properties, pendingInvite] = await Promise.all([
+    getAccount(),
+    getProperties(),
+    getMyPendingInvite(),
+  ]);
   const isPM = account?.product_mode === "property_manager";
 
   // PM dashboard only needs item counts, so skip signing photo thumbnails.
@@ -65,6 +70,9 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      {pendingInvite && (
+        <JoinInviteBanner accountName={pendingInvite.account_name} role={pendingInvite.role} />
+      )}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">{isPM ? "Portfolio" : "Overview"}</h1>

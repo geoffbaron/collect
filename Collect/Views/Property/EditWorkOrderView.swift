@@ -6,12 +6,14 @@ struct EditWorkOrderView: View {
     let workOrderService: WorkOrderService
     var onDeleted: () -> Void = {}
 
+    @EnvironmentObject private var accountService: AccountService
     @Environment(\.dismiss) private var dismiss
 
     @State private var title: String
     @State private var description: String
     @State private var category: WorkOrderCategory
     @State private var priority: WorkOrderPriority
+    @State private var assignedTo: String // empty = unassigned
     @State private var hasDueDate: Bool
     @State private var dueDate: Date
     @State private var isSaving = false
@@ -32,6 +34,7 @@ struct EditWorkOrderView: View {
         _description = State(initialValue: workOrder.description)
         _category = State(initialValue: workOrder.category)
         _priority = State(initialValue: workOrder.priority)
+        _assignedTo = State(initialValue: workOrder.assignedTo ?? "")
         if let dueDateString = workOrder.dueDate, let parsed = Self.dateFormatter.date(from: dueDateString) {
             _hasDueDate = State(initialValue: true)
             _dueDate = State(initialValue: parsed)
@@ -61,6 +64,12 @@ struct EditWorkOrderView: View {
                             Text(p.displayName).tag(p)
                         }
                     }
+                    Picker("Assign To", selection: $assignedTo) {
+                        Text("Unassigned").tag("")
+                        ForEach(accountService.members) { member in
+                            Text(member.displayName).tag(member.userID)
+                        }
+                    }
                 }
 
                 Section {
@@ -76,6 +85,7 @@ struct EditWorkOrderView: View {
                     }
                 }
             }
+            .task { await accountService.loadMembers() }
             .navigationTitle("Edit Work Order")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -112,7 +122,8 @@ struct EditWorkOrderView: View {
                 description: description,
                 category: category,
                 priority: priority,
-                dueDate: dueDateString
+                dueDate: dueDateString,
+                assignedTo: assignedTo.isEmpty ? nil : assignedTo
             )
             isSaving = false
             if success { dismiss() }

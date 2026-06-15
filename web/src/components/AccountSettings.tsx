@@ -92,6 +92,19 @@ export function AccountSettings({ account }: { account: Account | null }) {
         )}
       </section>
 
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold text-slate-900">Team</h2>
+        <Link href="/dashboard/settings/team" className="card flex items-center justify-between p-5 hover:border-slate-300">
+          <div>
+            <p className="font-medium text-slate-900">Members &amp; invites</p>
+            <p className="text-sm text-slate-500">
+              Invite teammates, set roles, and assign work orders to maintenance staff.
+            </p>
+          </div>
+          <span className="text-slate-400">→</span>
+        </Link>
+      </section>
+
       {current === "property_manager" && (
         <section className="space-y-3">
           <h2 className="text-lg font-semibold text-slate-900">Integrations</h2>

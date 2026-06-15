@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAccount, getBuildings, getCommonAreas, getProperties, getUnits, getWorkOrders } from "@/lib/data";
+import { getAccount, getAccountMembers, getBuildings, getCommonAreas, getProfileNames, getProperties, getUnits, getWorkOrders } from "@/lib/data";
 import {
   WORK_ORDER_CATEGORY_LABELS,
   WORK_ORDER_PRIORITY_LABELS,
@@ -26,13 +26,14 @@ export default async function PropertyWorkOrdersPage({
   searchParams: { unitId?: string };
 }) {
   const unitId = searchParams.unitId;
-  const [properties, workOrders, account, buildings, units, commonAreas] = await Promise.all([
+  const [properties, workOrders, account, buildings, units, commonAreas, members] = await Promise.all([
     getProperties(),
     getWorkOrders({ propertyId: params.propertyId, unitId }),
     getAccount(),
     getBuildings(params.propertyId),
     getUnits({ propertyId: params.propertyId }),
     getCommonAreas(params.propertyId),
+    getAccountMembers(),
   ]);
 
   if (account?.product_mode !== "property_manager") notFound();
@@ -41,6 +42,7 @@ export default async function PropertyWorkOrdersPage({
   if (!property) notFound();
 
   const unit = unitId ? units.find((u) => u.id === unitId) : undefined;
+  const assigneeNames = await getProfileNames(workOrders.map((wo) => wo.assigned_to ?? ""));
 
   return (
     <div className="space-y-6">
@@ -83,6 +85,7 @@ export default async function PropertyWorkOrdersPage({
                     <div className="text-sm text-slate-500">
                       {WORK_ORDER_CATEGORY_LABELS[wo.category]} · {WORK_ORDER_PRIORITY_LABELS[wo.priority]} priority
                       {wo.due_date && ` · Due ${formatDateOnly(wo.due_date)}`}
+                      {wo.assigned_to && ` · ${assigneeNames.get(wo.assigned_to) ?? "Assigned"}`}
                     </div>
                   </div>
                   <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[wo.status]}`}>
@@ -95,7 +98,7 @@ export default async function PropertyWorkOrdersPage({
         )}
       </div>
 
-      <NewWorkOrderForm propertyId={property.id} buildings={buildings} units={units} commonAreas={commonAreas} />
+      <NewWorkOrderForm propertyId={property.id} buildings={buildings} units={units} commonAreas={commonAreas} members={members} />
     </div>
   );
 }

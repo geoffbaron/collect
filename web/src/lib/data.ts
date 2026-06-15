@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { localDateString } from "@/lib/dates";
-import type { Account, AssetWithLocation, Building, CapitalAsset, CommonArea, Inspection, MaintenanceSchedule, Property, ProductMode, Unit, WorkOrder } from "@/lib/types";
+import type { Account, AccountInvite, AccountRole, AssetWithLocation, Building, CapitalAsset, CommonArea, Inspection, MaintenanceSchedule, Property, ProductMode, TeamMember, Unit, WorkOrder, WorkOrderPriority, WorkOrderStatus, WorkOrderWithContext } from "@/lib/types";
 
 export async function getUser() {
   const supabase = createClient();
@@ -98,6 +98,88 @@ export async function getAccount(): Promise<Account | null> {
     .eq("id", profile.account_id)
     .maybeSingle();
   return (data as Account) ?? null;
+}
+
+// ── Team (Phase 5) ──────────────────────────────────────────
+
+/** The signed-in user's role in their active account. */
+export async function getMyRole(): Promise<AccountRole | null> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("account_id")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (!profile?.account_id) return null;
+  const { data } = await supabase
+    .from("account_members")
+    .select("role")
+    .eq("account_id", profile.account_id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  return (data?.role as AccountRole) ?? null;
+}
+
+/** Everyone in the signed-in user's active account, with profile name/email. */
+export async function getAccountMembers(): Promise<TeamMember[]> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("account_id")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (!profile?.account_id) return [];
+
+  const { data: members } = await supabase
+    .from("account_members")
+    .select("user_id, role, created_at")
+    .eq("account_id", profile.account_id)
+    .order("created_at", { ascending: true });
+  if (!members || members.length === 0) return [];
+
+  // account_members.user_id references auth.users (no FK to profiles), so
+  // PostgREST can't embed — fetch the profiles in a second query.
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, name, email")
+    .in("id", members.map((m) => m.user_id));
+  const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
+
+  return members.map((m) => ({
+    user_id: m.user_id,
+    role: m.role as AccountRole,
+    created_at: m.created_at,
+    name: profileById.get(m.user_id)?.name ?? null,
+    email: profileById.get(m.user_id)?.email ?? null,
+  }));
+}
+
+/** Unclaimed, unrevoked invites for the signed-in user's account (owner/admin only — RLS returns [] otherwise). */
+export async function getPendingInvites(): Promise<AccountInvite[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("account_invites")
+    .select("*")
+    .is("claimed_at", null)
+    .is("revoked_at", null)
+    .order("created_at", { ascending: false });
+  return (data ?? []) as AccountInvite[];
+}
+
+/** A pending invite addressed to the signed-in user's email, if any. */
+export async function getMyPendingInvite(): Promise<{ account_name: string; role: AccountRole } | null> {
+  const supabase = createClient();
+  const { data } = await supabase.rpc("pending_invite_for_me").maybeSingle();
+  if (!data) return null;
+  return data as { account_name: string; role: AccountRole };
 }
 
 export async function getProperties(): Promise<Property[]> {
@@ -323,6 +405,52 @@ export async function getOpenWorkOrders(): Promise<WorkOrder[]> {
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
   return (data ?? []) as WorkOrder[];
+}
+
+/** Map of user_id → display name (profile name, falling back to email) for assignee labels. */
+export async function getProfileNames(userIds: string[]): Promise<Map<string, string>> {
+  const ids = Array.from(new Set(userIds.filter(Boolean)));
+  if (ids.length === 0) return new Map();
+  const supabase = createClient();
+  const { data } = await supabase.from("profiles").select("id, name, email").in("id", ids);
+  return new Map((data ?? []).map((p) => [p.id, p.name || p.email || "Unknown"]));
+}
+
+export type WorkOrderFilters = {
+  status?: WorkOrderStatus | "open_or_in_progress";
+  priority?: WorkOrderPriority;
+  propertyId?: string;
+  assignedTo?: string;
+};
+
+/**
+ * Work orders across every property in the account, with property/unit and
+ * assignee display context — for the portfolio-wide work orders page.
+ */
+export async function getAllWorkOrders(filters: WorkOrderFilters = {}): Promise<WorkOrderWithContext[]> {
+  const supabase = createClient();
+  let query = supabase
+    .from("work_orders")
+    .select("*, properties(name), units(unit_number)")
+    .is("deleted_at", null);
+  if (filters.status === "open_or_in_progress") query = query.in("status", ["open", "in_progress"]);
+  else if (filters.status) query = query.eq("status", filters.status);
+  if (filters.priority) query = query.eq("priority", filters.priority);
+  if (filters.propertyId) query = query.eq("property_id", filters.propertyId);
+  if (filters.assignedTo) query = query.eq("assigned_to", filters.assignedTo);
+  const { data } = await query.order("created_at", { ascending: false });
+
+  const rows = (data ?? []) as (WorkOrder & {
+    properties: { name: string } | null;
+    units: { unit_number: string } | null;
+  })[];
+  const names = await getProfileNames(rows.map((r) => r.assigned_to ?? ""));
+  return rows.map(({ properties, units, ...wo }) => ({
+    ...wo,
+    property_name: properties?.name ?? null,
+    unit_number: units?.unit_number ?? null,
+    assignee_name: wo.assigned_to ? names.get(wo.assigned_to) ?? null : null,
+  }));
 }
 
 /** Active maintenance schedules whose next due date has passed, across every property. */

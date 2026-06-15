@@ -54,7 +54,16 @@ struct PropertyListView: View {
 
                 // Resale marketplace is a homeowner feature — hidden for
                 // property managers, who don't list tenants' belongings.
-                if !accountService.isPropertyManager {
+                // PMs instead get the account-wide work-order queue.
+                if accountService.isPropertyManager {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        NavigationLink {
+                            MyWorkOrdersView()
+                        } label: {
+                            Image(systemName: "wrench.and.screwdriver")
+                        }
+                    }
+                } else {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button {
                             showListings = true

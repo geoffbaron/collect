@@ -5,12 +5,19 @@ struct ContentView: View {
     @EnvironmentObject private var authService: AuthService
     @EnvironmentObject private var syncService: SyncService
     @EnvironmentObject private var featuresService: FeaturesService
+    @EnvironmentObject private var accountService: AccountService
     @Environment(\.modelContext) private var modelContext
 
     var body: some View {
         Group {
             if authService.isAuthenticated {
-                PropertyListView()
+                // Maintenance staff work out of the account-wide ticket queue —
+                // the property list is local SwiftData and would be empty for them.
+                if accountService.isMaintenance {
+                    MaintenanceHomeView()
+                } else {
+                    PropertyListView()
+                }
             } else {
                 SignInView()
             }

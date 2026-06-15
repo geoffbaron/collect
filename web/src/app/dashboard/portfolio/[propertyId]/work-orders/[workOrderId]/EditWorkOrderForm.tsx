@@ -6,6 +6,7 @@ import { deleteWorkOrder, updateWorkOrder } from "@/lib/actions";
 import {
   WORK_ORDER_CATEGORY_LABELS,
   WORK_ORDER_PRIORITY_LABELS,
+  type TeamMember,
   type WorkOrder,
   type WorkOrderCategory,
   type WorkOrderPriority,
@@ -14,13 +15,22 @@ import {
 const CATEGORIES = Object.entries(WORK_ORDER_CATEGORY_LABELS) as [WorkOrderCategory, string][];
 const PRIORITIES = Object.entries(WORK_ORDER_PRIORITY_LABELS) as [WorkOrderPriority, string][];
 
-export default function EditWorkOrderForm({ workOrder, propertyId }: { workOrder: WorkOrder; propertyId: string }) {
+export default function EditWorkOrderForm({
+  workOrder,
+  propertyId,
+  members,
+}: {
+  workOrder: WorkOrder;
+  propertyId: string;
+  members: TeamMember[];
+}) {
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(workOrder.title);
   const [description, setDescription] = useState(workOrder.description);
   const [category, setCategory] = useState<WorkOrderCategory>(workOrder.category);
   const [priority, setPriority] = useState<WorkOrderPriority>(workOrder.priority);
   const [dueDate, setDueDate] = useState(workOrder.due_date ?? "");
+  const [assignedTo, setAssignedTo] = useState(workOrder.assigned_to ?? "");
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const router = useRouter();
@@ -35,6 +45,7 @@ export default function EditWorkOrderForm({ workOrder, propertyId }: { workOrder
         category,
         priority,
         dueDate: dueDate || null,
+        assignedTo: assignedTo || null,
       });
       if (!result.ok) { setError(result.error ?? "Failed to update work order."); return; }
       setEditing(false);
@@ -97,6 +108,16 @@ export default function EditWorkOrderForm({ workOrder, propertyId }: { workOrder
           <label className="label" htmlFor="edit-wo-due-date">Due Date</label>
           <input id="edit-wo-due-date" className="input" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
         </div>
+      </div>
+
+      <div>
+        <label className="label" htmlFor="edit-wo-assignee">Assign To</label>
+        <select id="edit-wo-assignee" className="input" value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)}>
+          <option value="">Unassigned</option>
+          {members.map((m) => (
+            <option key={m.user_id} value={m.user_id}>{m.name || m.email || "Unknown"}</option>
+          ))}
+        </select>
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}

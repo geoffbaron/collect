@@ -325,6 +325,7 @@ export async function createWorkOrder(input: {
   category: WorkOrderCategory;
   priority: WorkOrderPriority;
   dueDate?: string | null;
+  assignedTo?: string | null;
 }) {
   const title = input.title.trim();
   if (!title) return { ok: false, error: "Title is required.", workOrder: null };
@@ -342,6 +343,7 @@ export async function createWorkOrder(input: {
       category: input.category,
       priority: input.priority,
       due_date: input.dueDate ?? null,
+      assigned_to: input.assignedTo ?? null,
     })
     .select()
     .single();
@@ -387,6 +389,7 @@ export async function updateWorkOrder(id: string, propertyId: string, input: {
   category: WorkOrderCategory;
   priority: WorkOrderPriority;
   dueDate?: string | null;
+  assignedTo?: string | null;
 }) {
   const title = input.title.trim();
   if (!title) return { ok: false, error: "Title is required." };
@@ -400,6 +403,7 @@ export async function updateWorkOrder(id: string, propertyId: string, input: {
       category: input.category,
       priority: input.priority,
       due_date: input.dueDate ?? null,
+      assigned_to: input.assignedTo ?? null,
     })
     .eq("id", id)
     .select("id");

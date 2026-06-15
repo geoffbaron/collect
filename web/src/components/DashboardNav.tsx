@@ -20,6 +20,7 @@ const NAV_BY_MODE: Record<ProductMode, NavLink[]> = {
   ],
   property_manager: [
     { href: "/dashboard", label: "Portfolio" },
+    { href: "/dashboard/work-orders", label: "Work Orders" },
     { href: "/dashboard/items", label: "Inventory" },
     { href: "/dashboard/export", label: "Import / Export" },
     { href: "/dashboard/settings", label: "Settings" },
